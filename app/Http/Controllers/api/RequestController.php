@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Request;
-use App\PettyCash;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
+use App\PettyCash;
+use App\Request;
 use Illuminate\Http\Request;
 
 class RequestController extends ApiResponseController
@@ -43,8 +43,8 @@ class RequestController extends ApiResponseController
     {
         $request = new Request;
         $request->request_type_id = $request->request_type_id;
-        if($request->save()) {
-            if($request->request_type_id == 1) {
+        if ($request->save()) {
+            if ($request->request_type_id == 1) {
                 $petty_cash = new PettyCash;
                 $petty_cash->request_id = $request->request_id;
                 $petty_cash->rut = $request->user_id;

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
-use App\Videotutorial;
-use App\User;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
+use App\User;
+use App\Videotutorial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,7 +18,7 @@ class VideotutorialController extends ApiResponseController
 
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -62,7 +62,7 @@ class VideotutorialController extends ApiResponseController
         $videotutorial->title = $request->title;
         $videotutorial->iframe = $request->iframe;
         $videotutorial->save();
-        
+
         return $this->successResponse($videotutorial);
     }
 

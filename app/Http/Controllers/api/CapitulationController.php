@@ -20,7 +20,7 @@ class CapitulationController extends ApiResponseController
 
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -44,8 +44,8 @@ class CapitulationController extends ApiResponseController
         if (($rut == 'null' && $expense_type_id == 'null' && $since == '' && $until == '' && $status_id == '')
         || ($rut == '' && $expense_type_id == '' && $since == '' && $until == '' && $status_id == '')
         ) {
-            if($this->user->rol_id != 1) {
-                if($this->user->rol_id == 11) {
+            if ($this->user->rol_id != 1) {
+                if ($this->user->rol_id == 11) {
                     $capitulations = Capitulation::from('capitulations as c')
                             ->selectRaw('users.rut as rut, users.names as names, SUM(c.amount) as amount')
                             ->leftJoin('users', 'users.rut', '=', 'c.rut')
@@ -56,7 +56,7 @@ class CapitulationController extends ApiResponseController
                             ->paginate(10);
                 } else {
                     $capitulations = Capitulation::from('capitulations as c')
-                            ->selectRaw('c.capitulation_id as capitulation_id, users.names as names, c.capitulation_type_id as capitulation_type_id, expense_types.expense_type as expense_type, c.description as description, c.amount as amount, c.document_date as document_date, c.status_id as status_id, statuses.status as status')                            ->leftJoin('expense_types', 'expense_types.expense_type_id', '=', 'c.expense_type_id')
+                            ->selectRaw('c.capitulation_id as capitulation_id, users.names as names, c.capitulation_type_id as capitulation_type_id, expense_types.expense_type as expense_type, c.description as description, c.amount as amount, c.document_date as document_date, c.status_id as status_id, statuses.status as status')->leftJoin('expense_types', 'expense_types.expense_type_id', '=', 'c.expense_type_id')
                             ->where('c.rut', $this->user->rut)
                             ->leftJoin('statuses', 'statuses.status_id', '=', 'c.status_id')
                             ->leftJoin('users', 'users.rut', '=', 'c.rut')
@@ -113,10 +113,10 @@ class CapitulationController extends ApiResponseController
                 $query .= 'c.status_id = '.$status_id;
             }
 
-            if($this->user->rol_id == 11) {
+            if ($this->user->rol_id == 11) {
                 $capitulations = Capitulation::from('capitulations as c')
                             ->whereRaw($query)
-                            ->selectRaw('c.capitulation_id as capitulation_id, users.names as names, c.capitulation_type_id as capitulation_type_id, expense_types.expense_type as expense_type, c.description as description, c.amount as amount, c.document_date as document_date, c.status_id as status_id, statuses.status as status, c.created_at as created_at')                            
+                            ->selectRaw('c.capitulation_id as capitulation_id, users.names as names, c.capitulation_type_id as capitulation_type_id, expense_types.expense_type as expense_type, c.description as description, c.amount as amount, c.document_date as document_date, c.status_id as status_id, statuses.status as status, c.created_at as created_at')
                             ->leftJoin('expense_types', 'expense_types.expense_type_id', '=', 'c.expense_type_id')
                             ->leftJoin('users', 'users.rut', '=', 'c.rut')
                             ->leftJoin('statuses', 'statuses.status_id', '=', 'c.status_id')
@@ -128,7 +128,7 @@ class CapitulationController extends ApiResponseController
             } else {
                 $capitulations = Capitulation::from('capitulations as c')
                             ->whereRaw($query)
-                            ->selectRaw('c.capitulation_id as capitulation_id, users.names as names, c.capitulation_type_id as capitulation_type_id, expense_types.expense_type as expense_type, c.description as description, c.amount as amount, c.document_date as document_date, c.status_id as status_id, statuses.status as status')                            
+                            ->selectRaw('c.capitulation_id as capitulation_id, users.names as names, c.capitulation_type_id as capitulation_type_id, expense_types.expense_type as expense_type, c.description as description, c.amount as amount, c.document_date as document_date, c.status_id as status_id, statuses.status as status')
                             ->leftJoin('expense_types', 'expense_types.expense_type_id', '=', 'c.expense_type_id')
                             ->leftJoin('statuses', 'statuses.status_id', '=', 'c.status_id')
                             ->leftJoin('branch_offices', 'branch_offices.branch_office_id', '=', 'c.branch_office_id')
@@ -205,6 +205,7 @@ class CapitulationController extends ApiResponseController
 
         return $this->successResponse($capitulation);
     }
+
     /**
      * Update the specified resource in storage.
      *
@@ -253,70 +254,67 @@ class CapitulationController extends ApiResponseController
                     $fileName
             );
         }
-        if($capitulation->save()) {
-            $period = $request->period .'-01';
+        if ($capitulation->save()) {
+            $period = $request->period.'-01';
             $branch_office = BranchOffice::find($request->branch_office_id);
             $expense_type = ExpenseType::find($request->expense_type_id);
-            $explode_period = explode("-", $request->period);
+            $explode_period = explode('-', $request->period);
             $utf8_date = '01-'.$explode_period[1].'-'.$explode_period[0];
-            if($capitulation->capitulation_type_id == 2)
-            {
+            if ($capitulation->capitulation_type_id == 2) {
                 $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_GastoRendido_'.$capitulation->capitulation_id;
-            }
-            else
-            {
+            } else {
                 $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_FondoRendido_'.$capitulation->capitulation_id;
             }
-            if($capitulation->capitulation_type_id == 2) {
-                if($request->dte_type_id == 33) {
+            if ($capitulation->capitulation_type_id == 2) {
+                if ($request->dte_type_id == 33) {
                     $url = 'https://libredte.cl';
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $period,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        $expense_type->accounting_account => $request->amount,
-                                    ],
-                                    'haber' => [
-                                        111000102 => round($request->amount/1.19), // venta abonados neto
-                                        221000226 => round($request->amount - ($request->amount/1.19)), // iva débito
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
-                            ];
+                        'fecha' => $period,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                $expense_type->accounting_account => $request->amount,
+                            ],
+                            'haber' => [
+                                111000102 => round($request->amount / 1.19), // venta abonados neto
+                                221000226 => round($request->amount - ($request->amount / 1.19)), // iva débito
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
+                    ];
 
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 } else {
                     $url = 'https://libredte.cl';
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $period,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        $expense_type->accounting_account => $request->amount,
-                                    ],
-                                    'haber' => [
-                                        111000102 => $request->amount,
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
-                            ];
-                            print_r($data);
+                        'fecha' => $period,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                $expense_type->accounting_account => $request->amount,
+                            ],
+                            'haber' => [
+                                111000102 => $request->amount,
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
+                    ];
+                    print_r($data);
 
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 }
             }
@@ -362,76 +360,73 @@ class CapitulationController extends ApiResponseController
     public function check(Request $request)
     {
         $selected = $request->input('selected');
-        $selected = explode(",", $selected);
-        for($i = 0; $i < count($selected); $i++) {
+        $selected = explode(',', $selected);
+        for ($i = 0; $i < count($selected); $i++) {
             $capitulation = Capitulation::find($selected[$i]);
             $capitulation->status_id = 17;
             $capitulation->payment_type_id = $request->payment_type_id;
             $capitulation->payment_date = $request->payment_date;
             $capitulation->payment_comment = $request->payment_comment;
-            if($capitulation->save()) {
-                $period = $capitulation->impute_period .'-01';
+            if ($capitulation->save()) {
+                $period = $capitulation->impute_period.'-01';
                 $branch_office = BranchOffice::find($capitulation->branch_office_id);
                 $expense_type = ExpenseType::find($capitulation->expense_type_id);
-                $explode_period = explode("-", $capitulation->impute_period);
+                $explode_period = explode('-', $capitulation->impute_period);
                 $utf8_date = '01-'.$explode_period[1].'-'.$explode_period[0];
-                if($capitulation->capitulation_type_id == 2)
-                {
+                if ($capitulation->capitulation_type_id == 2) {
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_GastoRendido_'.$capitulation->capitulation_id;
-                }
-                else
-                {
+                } else {
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_FondoRendido_'.$capitulation->capitulation_id;
                 }
-                if($capitulation->dte_type_id == 33) {
+                if ($capitulation->dte_type_id == 33) {
                     $url = 'https://libredte.cl';
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $period,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        $expense_type->accounting_account => $capitulation->amount,
-                                    ],
-                                    'haber' => [
-                                        111000102 => round($capitulation->amount/1.19), // venta abonados neto
-                                        221000226 => round($capitulation->amount - ($capitulation->amount/1.19)), // iva débito
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
-                            ];
+                        'fecha' => $period,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                $expense_type->accounting_account => $capitulation->amount,
+                            ],
+                            'haber' => [
+                                111000102 => round($capitulation->amount / 1.19), // venta abonados neto
+                                221000226 => round($capitulation->amount - ($capitulation->amount / 1.19)), // iva débito
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
+                    ];
 
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 } else {
                     $url = 'https://libredte.cl';
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $period,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        $expense_type->accounting_account => $capitulation->amount,
-                                    ],
-                                    'haber' => [
-                                        111000102 => $capitulation->amount,
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
-                            ];
-                            print_r($data);
+                        'fecha' => $period,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                $expense_type->accounting_account => $capitulation->amount,
+                            ],
+                            'haber' => [
+                                111000102 => $capitulation->amount,
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation->capitulation_id]]],
+                    ];
+                    print_r($data);
 
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 }
             }
@@ -450,73 +445,70 @@ class CapitulationController extends ApiResponseController
         $capitulations = Capitulation::where('rut', $request->segment(4))
                                     ->where('status_id', '7')->get();
 
-        foreach($capitulations as $capitulation) {
+        foreach ($capitulations as $capitulation) {
             $capitulation_detail = Capitulation::where('capitulation_id', $capitulation->capitulation_id)
                                     ->where('status_id', '7')->first();
             $capitulation_detail->status_id = 17;
-            if($capitulation_detail->save()) {
-                $period = $capitulation_detail->impute_period .'-01';
+            if ($capitulation_detail->save()) {
+                $period = $capitulation_detail->impute_period.'-01';
                 $branch_office = BranchOffice::find($capitulation_detail->branch_office_id);
                 $expense_type = ExpenseType::find($capitulation_detail->expense_type_id);
-                $explode_period = explode("-", $capitulation_detail->impute_period);
+                $explode_period = explode('-', $capitulation_detail->impute_period);
                 $utf8_date = '01-'.$explode_period[1].'-'.$explode_period[0];
-                if($capitulation_detail->capitulation_type_id == 2)
-                {
+                if ($capitulation_detail->capitulation_type_id == 2) {
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_GastoRendido_'.$capitulation_detail->capitulation_id;
-                }
-                else
-                {
+                } else {
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_FondoRendido_'.$capitulation_detail->capitulation_id;
                 }
-                if($capitulation_detail->dte_type_id == 33) {
+                if ($capitulation_detail->dte_type_id == 33) {
                     $url = 'https://libredte.cl';
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $period,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        $expense_type->accounting_account => $capitulation_detail->amount,
-                                    ],
-                                    'haber' => [
-                                        111000102 => round($capitulation_detail->amount/1.19), // venta abonados neto
-                                        221000226 => round($capitulation_detail->amount - ($capitulation_detail->amount/1.19)), // iva débito
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation_detail->capitulation_id]]],
-                            ];
+                        'fecha' => $period,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                $expense_type->accounting_account => $capitulation_detail->amount,
+                            ],
+                            'haber' => [
+                                111000102 => round($capitulation_detail->amount / 1.19), // venta abonados neto
+                                221000226 => round($capitulation_detail->amount - ($capitulation_detail->amount / 1.19)), // iva débito
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation_detail->capitulation_id]]],
+                    ];
 
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 } else {
                     $url = 'https://libredte.cl';
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $period,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        $expense_type->accounting_account => $capitulation_detail->amount,
-                                    ],
-                                    'haber' => [
-                                        111000102 => $capitulation_detail->amount,
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation_detail->capitulation_id]]],
-                            ];
-                            print_r($data);
+                        'fecha' => $period,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                $expense_type->accounting_account => $capitulation_detail->amount,
+                            ],
+                            'haber' => [
+                                111000102 => $capitulation_detail->amount,
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>$capitulation_detail->capitulation_id]]],
+                    ];
+                    print_r($data);
 
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 }
             }

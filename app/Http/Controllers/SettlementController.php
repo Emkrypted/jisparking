@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Settlement;
 use App\Http\Controllers\Controller;
+use App\Settlement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;
@@ -17,7 +17,7 @@ class SettlementController extends ApiResponseController
      */
     public function index()
     {
-       //
+        //
     }
 
     /**

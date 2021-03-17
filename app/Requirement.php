@@ -1,6 +1,7 @@
 <?php
 
 namespace App;
+
 use App\RequirementType;
 use Illuminate\Database\Eloquent\Model;
 

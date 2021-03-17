@@ -21,10 +21,7 @@ Vue.component('create-dte-modal', require('./components/CreateModalDteComponent.
 
 Vue.component('listado', require('./components/ListadoComponent.vue').default);
 
-Vue.component(
-    'menu-component',
-    require('./components/MenuComponent.vue').default
-);
+Vue.component('menu-component', require('./components/MenuComponent.vue').default);
 
 Vue.component('multiselect', Multiselect);
 
@@ -54,8 +51,8 @@ Vue.use(vueRut);
 
 const app = new Vue({
     el: '#app',
-    data:{
-        rut: ''
+    data: {
+        rut: '',
     },
-    router
+    router,
 });

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Patent;
-use App\User;
 use App\BranchOffice;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
+use App\Patent;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;
@@ -16,8 +16,8 @@ class PatentController extends ApiResponseController
     public function __construct(Request $request)
     {
         $this->user = User::where('api_token', $request->api_token)->first();
-        $this->dropbox = Storage::disk('dropbox')->getDriver()->getAdapter()->getClient();  
-        if($this->user->rol_id == 4) {
+        $this->dropbox = Storage::disk('dropbox')->getDriver()->getAdapter()->getClient();
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -54,7 +54,7 @@ class PatentController extends ApiResponseController
                 if ($branch_office_id != 'null') {
                     $query .= ' AND ';
                 }
-                
+
                 $date = explode('-', $date);
                 $query .= 'month = '.$date[1];
                 $query .= ' AND ';
@@ -150,7 +150,7 @@ class PatentController extends ApiResponseController
     public function destroy($id)
     {
         $patent = Patent::find($id);
-        if($patent->delete()) {
+        if ($patent->delete()) {
             $this->dropbox->delete('patents/'.$patent->support);
         }
 

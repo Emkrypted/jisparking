@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Dte;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Auth;
+use Illuminate\Http\Request;
 
 class DteController extends ApiResponseController
 {
@@ -110,22 +110,22 @@ class DteController extends ApiResponseController
         $copias_tributarias = 1;
         $codigo = $dte->dte_type_id;
         $copias_cedibles = 1;
-        $cedible = (int)(bool)$copias_cedibles; // =1 genera cedible, =0 no genera cedible
+        $cedible = (int) (bool) $copias_cedibles; // =1 genera cedible, =0 no genera cedible
         // incluir autocarga de composer
 
         // crear cliente
         $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
         // descargar PDF
         $pdf = $LibreDTE->get('/dte/dte_emitidos/pdf/'.$dte_type_id.'/'.$folio.'/'.$rut.'?formato=general&papelContinuo=0&copias_tributarias=1&copias_cedibles=1&cedible=0&compress=0&base64=0');
-        if ($pdf['status']['code']!=200) {
-            die('Error al descargar el PDF del DTE recibido: '.$pdf['body']."\n");
+        if ($pdf['status']['code'] != 200) {
+            exit('Error al descargar el PDF del DTE recibido: '.$pdf['body']."\n");
         }
 
         file_put_contents('/home/jysparki/www/tmp_document/'.$folio.'.pdf', $pdf['body']);
         $file_url = '/home/jysparki/www/tmp_document/'.$folio.'.pdf';
         header('Content-Type: application/octet-stream');
-        header("Content-Transfer-Encoding: Binary"); 
-        header("Content-disposition: attachment; filename=\"" . basename($folio.'.pdf') . "\""); 
+        header('Content-Transfer-Encoding: Binary');
+        header('Content-disposition: attachment; filename="'.basename($folio.'.pdf').'"');
         readfile($file_url);
     }
 }
