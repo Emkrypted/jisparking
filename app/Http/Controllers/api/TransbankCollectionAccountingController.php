@@ -183,9 +183,9 @@ class TransbankCollectionAccountingController extends ApiResponseController
             $collection->support = $fileName;
             $this->dropbox->delete('collections/'.$oldFileName);
             Storage::disk('dropbox')->putFileAs(
-                    'collections/',
-                    $request->file,
-                    $fileName
+                'collections/',
+                $request->file,
+                $fileName
             );
         }
         $collection->save();
