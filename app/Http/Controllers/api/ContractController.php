@@ -39,8 +39,9 @@ class ContractController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $branch_office_id = $request->segment(4);
-
+        // It checks if any of them exist or they are nulled.
         if (($branch_office_id == 'null')
         || ($branch_office_id == '')
         ) {
@@ -165,6 +166,7 @@ class ContractController extends ApiResponseController
      */
     public function destroy($id)
     {
+        // It deletes the contract in the table and dropbox.
         $contract = Contract::find($id);
         if ($contract->delete()) {
             $this->dropbox->delete('company_contracts/'.$contract->support);

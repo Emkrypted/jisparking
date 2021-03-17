@@ -28,7 +28,7 @@ class CollectionAccountingController extends ApiResponseController
             $this->branch_offices->toArray();
         }
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -36,9 +36,11 @@ class CollectionAccountingController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $branch_office_id = $request->segment(4);
         $period = $request->segment(5);
         $collections = null;
+        // It checks if any of them exist or they are nulled.
         if ($branch_office_id != '' && $period != '') {
             $collections = Collection::from('collections as c')
                                 ->selectRaw('branch_offices.branch_office_id as branch_office_id, DATE(c.created_at) as collection_date, branch_offices.branch_office as branch_office_name, sum(c.gross_amount) as amount')

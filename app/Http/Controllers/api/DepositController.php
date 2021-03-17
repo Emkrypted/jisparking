@@ -38,10 +38,12 @@ class DepositController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $branch_office_id = $request->segment(4);
         $status_id = $request->segment(5);
         $since = $request->segment(6);
         $until = $request->segment(7);
+        // It checks if any of them exist or they are nulled.
         if (($branch_office_id == 'null' && $status_id == 'null' && $since == 'null' && $until == 'null')
         || ($branch_office_id == '' && $status_id == '' && $since == '' && $until == '')
         ) {

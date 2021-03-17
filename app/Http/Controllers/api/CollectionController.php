@@ -43,10 +43,12 @@ class CollectionController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $branch_office_id = $request->segment(4);
         $created_at = $request->segment(5);
         $status_id = $request->segment(6);
         $supervisor_id = $request->segment(7);
+        // It checks if any of them exist or they are nulled.
         if (($branch_office_id == 'null' && $created_at == 'null' && $status_id == 'null' && $supervisor_id == 'null')
         || ($branch_office_id == '' && $created_at == '' && $status_id == '' && $supervisor_id == '')
         ) {
