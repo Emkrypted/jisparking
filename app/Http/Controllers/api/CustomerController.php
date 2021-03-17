@@ -43,8 +43,7 @@ class CustomerController extends ApiResponseController
      */
     public function store(Request $request)
     {
-        $customer = new Customer;
-        $customer->
+        //
     }
 
     /**

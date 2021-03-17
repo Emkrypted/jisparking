@@ -103,7 +103,7 @@ class TicketController extends ApiResponseController
             $period = $date[1].'-'.$date[0];
             $updated_dte = $Dte::find($id);
             $updated_dte->accountability_status_id = 1;
-            $updated_dte->period
+            $updated_dte->period;
             if($updated_dte->save()) {
                 $branch_office = BranchOffice::find($updated_dte->branch_office_id);
                 $utf8_date = explode("-", $updated_dte->period);
