@@ -34,7 +34,7 @@ class TriggerController extends ApiResponseController
     public function e()
     {
         if (3 == 3) {
-            $bill_tracks = DB::select('select * from dtes WHERE dte_version_id = 2 AND dte_status_id = 19 AND created_at >= "2021-01-01" AND created_at < "2021-02-01" AND dte_type_id = 61');
+            $bill_tracks = DB::select('select * from dtes WHERE dte_version_id = 2 AND status_id = 19 AND created_at >= "2021-01-01" AND created_at < "2021-02-01" AND dte_type_id = 61');
 
             $total = 0;
 
