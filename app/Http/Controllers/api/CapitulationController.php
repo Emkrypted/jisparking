@@ -174,9 +174,9 @@ class CapitulationController extends ApiResponseController
             $fileName = time().'_'.'rendicion'.'_'.$request->document_date.'_'.$request->capitulation_type_id.'.'.$request->file->getClientOriginalExtension();
             $capitulation->support = $fileName;
             Storage::disk('dropbox')->putFileAs(
-                    'capitulations/',
-                    $request->file,
-                    $fileName
+                'capitulations/',
+                $request->file,
+                $fileName
             );
         }
         $capitulation->save();
@@ -249,9 +249,9 @@ class CapitulationController extends ApiResponseController
             $deposit->support = $fileName;
             $this->dropbox->delete('capitulations/'.$oldFileName);
             Storage::disk('dropbox')->putFileAs(
-                    'capitulations/',
-                    $request->file,
-                    $fileName
+                'capitulations/',
+                $request->file,
+                $fileName
             );
         }
         if ($capitulation->save()) {

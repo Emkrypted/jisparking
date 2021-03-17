@@ -217,9 +217,9 @@ class DepositController extends ApiResponseController
             $deposit->support = $fileName;
             $this->dropbox->delete('deposits/'.$oldFileName);
             Storage::disk('dropbox')->putFileAs(
-                    'deposits/',
-                    $request->file,
-                    $fileName
+                'deposits/',
+                $request->file,
+                $fileName
             );
         }
         $deposit->save();
