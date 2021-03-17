@@ -15,15 +15,18 @@ class BillPaymentController extends ApiResponseController
 {
     public function __construct(Request $request)
     {
+        // It is used to connect to a dropbox account. It allows to get the client.
         $this->dropbox = Storage::disk('dropbox')->getDriver()->getAdapter()->getClient();
-
+        // It's necessary to check if the user has the permissions.
         $this->user = User::where('api_token', $request->api_token)->first();
 
+        // It checks if the user is rol_id = 4 because if it is, it's necessary to get all the branch offices which they belong to this supervisor.
         if ($this->user->rol_id == 4) {
+            // It finds a supervisor by rut.
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
+            // If it's not supervisor it just needs to return all the branch offices.
             $this->branch_offices = BranchOffice::all();
-
             $this->branch_offices->toArray();
         }
     }
@@ -35,13 +38,22 @@ class BillPaymentController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $supplier_dte_id = $request->segment(4);
         $folio = $request->segment(5);
         $rut = $request->segment(6);
+        // It checks if any of them exist or they are nulled.
         if (($supplier_dte_id == 'null' && $folio == 'null' && $rut == 'null')
         || ($supplier_dte_id == '' && $folio == '' && $rut == '')
         ) {
             $query = '(c.dte_type_id = 33 || c.dte_type_id = 39)';
+
+            // This is a query which it returns the dte data. It contains joins to multiple tables.
+            /*
+                - dte_type_id: means the dte document type.
+                - dte_version_id: means if it was created for us or it was received.
+                - status_id: means the status of the dte document, it can be paid or waiting to be paid.
+            */
 
             $dtes = Dte::from('dtes as c')
                                 ->selectRaw('c.dte_id as dte_id, c.comment as comment, c.dte_id as dte_id, users.names as names, c.rut as rut, sum(c.amount) as amount, c.rut as rut, c.folio as folio, expense_types.expense_type as expense_type')
@@ -77,6 +89,12 @@ class BillPaymentController extends ApiResponseController
                 $query .= 'c.rut = "'.$rut.'"';
             }
 
+            // This is a query which it returns the dte data. It contains joins to multiple tables.
+            /*
+                - dte_type_id: means the dte document type.
+                - dte_version_id: means if it was created for us or it was received.
+                - status_id: means the status of the dte document, it can be paid or waiting to be paid.
+            */
             $dtes = Dte::whereRaw($query)
                     ->from('dtes as c')
                     ->selectRaw('c.dte_id as dte_id, c.comment as comment, c.dte_id as dte_id, users.names as names, c.rut as rut, sum(c.amount) as amount, c.rut as rut, c.folio as folio, expense_types.expense_type as expense_type')
@@ -89,28 +107,6 @@ class BillPaymentController extends ApiResponseController
                      ->orderBy('users.names', 'DESC')
                     ->paginate(10);
         }
-
-        return $this->successResponse($dtes);
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function detail(Request $request)
-    {
-        $rut = $request->segment(4);
-        $dtes = Dte::from('dtes as c')
-                        ->selectRaw('c.dte_id as dte_id, c.comment as comment, c.dte_id as dte_id, users.names as names, c.rut as rut, c.amount as amount, c.rut as rut, c.folio as folio, expense_types.expense_type as expense_type, c.created_at as created_at')
-                        ->leftJoin('users', 'users.rut', '=', 'c.rut')
-                        ->leftJoin('expense_types', 'expense_types.expense_type_id', '=', 'c.expense_type_id')
-                        ->where('c.status_id', '18')
-                        ->where('users.rol_id', '18')
-                        ->where('c.dte_version_id', '2')
-                        ->where('c.rut', $rut)
-                        ->orderBy('c.created_at', 'DESC')
-                        ->paginate(100);
 
         return $this->successResponse($dtes);
     }
@@ -133,6 +129,7 @@ class BillPaymentController extends ApiResponseController
      */
     public function store(Request $request)
     {
+        // It 
         $date_now = date('d-m-Y');
         $date_past = strtotime('-30 day', strtotime($date_now));
         $date_past = date('d-m-Y', $date_past);
@@ -223,10 +220,7 @@ class BillPaymentController extends ApiResponseController
      */
     public function destroy($id)
     {
-        $dte = Dte::find($id);
-        $dte->delete();
-
-        return $this->successResponse($dte);
+        //
     }
 
     /**
@@ -237,9 +231,9 @@ class BillPaymentController extends ApiResponseController
      */
     public function generate(Request $request)
     {
+        // It creates a new DTE document.
         $url = 'https://libredte.cl';
         $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
-
         // se obtiene los datos para la factura.
         $dte_type_id = $request->dte_type_id;
         $branch_office_id = $request->branch_office_id;
@@ -251,8 +245,7 @@ class BillPaymentController extends ApiResponseController
         $branch_office = BranchOffice::find($branch_office_id);
         $dte_code = $branch_office->dte_code;
         $description = '';
-
-        // Se utiliza la API para generar el temporal de la boleta o factura.
+        // It is created with the LibreDTE API a temporal field.
         $dte = [
             'Encabezado' => [
                 'IdDoc' => [
@@ -278,28 +271,22 @@ class BillPaymentController extends ApiResponseController
                 ],
             ],
         ];
-
-        // crear cliente
         $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
-
-        // $LibreDTE->setSSL(false, false); ///< segundo parámetro =false desactiva verificación de SSL
-        // crear DTE temporal
         $emitir = $LibreDTE->post('/dte/documentos/emitir', $dte);
         if ($emitir['status']['code'] != 200) {
             exit('Error al emitir DTE temporal: '.$emitir['body']."\n");
         }
         $temporal_code = serialize($emitir['body']);
-
-        // Generamos la boleta o factura.
         $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
-
-        // crear DTE real
+        // It is creates an original DTE and it sends an email too.
         $generar = $LibreDTE->post('/dte/documentos/generar?email=1', $emitir['body']);
         if ($generar['status']['code'] != 200) {
             exit('Error al generar DTE real: '.$generar['body']."\n");
         }
-
-        // Se guarda los datos de la boleta o factura.
+        // It stores the DTE data into the DTE table. 
+        /*
+            Important: Checks the status_id in the table statuses.
+        */
         $folio = $generar['body']['folio'];
         $dte = new Dte;
         $dte->rut = $rut;
@@ -312,8 +299,7 @@ class BillPaymentController extends ApiResponseController
         $dte->temporal_code = $temporal_code;
         $dte->status_id = 6;
         $dte->save();
-
-        // Si no existe el cliente lo creamos.
+        // If the supplier does not exist it's necessary to create it.
         $supplier_client_qty = Supplier::where('rut', $rut)->count();
         $user_client_qty = Supplier::where('rut', $rut)->count();
         if ($client_qty == 0 && $user_client_qty == 0) {
@@ -340,11 +326,14 @@ class BillPaymentController extends ApiResponseController
      */
     public function impute(Request $request)
     {
+        // It checks if the data was splitted in the form.
         $splits = $request->input('splits');
         $splits = json_decode($splits);
+        // If it counts more than 1 it means that the DTE was splitted.
         if (count($splits) > 1) {
             for ($i = 0; $i < count($splits); $i++) {
                 $id = $request->dte_id;
+                // It updates the old DTE.
                 $dte = Dte::find($id);
                 if ($request->comment != '') {
                     $dte->comment = $request->comment;
@@ -360,7 +349,7 @@ class BillPaymentController extends ApiResponseController
                     $dte->status_id = 18;
                 }
                 $dte->save();
-
+                // It creates all the new DTE because the first one was splitted in several ones.
                 $new_dte = new Dte;
                 $new_dte->rut = $dte->rut;
                 $new_dte->folio = $dte->folio;
@@ -377,7 +366,13 @@ class BillPaymentController extends ApiResponseController
                 $new_dte->temporal_code = $dte->temporal_code;
                 $new_dte->created_at = $dte->created_at;
                 if ($new_dte->save()) {
+                    /* 
+                        If they were stored successfully, it's necessary to send this information to accounting.
+                        So it will depend about what kind of DTE you are sending because it can be 33, 34, 39, 61.
+                    */
+                    // It checks if the DTE was sent or received. dte_version_id = 1 sent. dte_version_id = 2 received.
                     if ($new_dte->dte_version_id == 1) {
+                        // It creates in accounting a seat with 33 DTE data.
                         if ($new_dte->dte_type_id == 33) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -411,6 +406,7 @@ class BillPaymentController extends ApiResponseController
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
                         } elseif ($new_dte->dte_type_id == 39) {
+                            // It creates in accounting a seat with 39 DTE data.
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
@@ -443,6 +439,7 @@ class BillPaymentController extends ApiResponseController
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
                         } elseif ($new_dte->dte_type_id == 61) {
+                            // It creates in accounting a seat with 61 DTE data.
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
@@ -476,6 +473,7 @@ class BillPaymentController extends ApiResponseController
                             }
                         }
                     } else {
+                        // It creates in accounting a seat with 33 DTE data.
                         if ($new_dte->dte_type_id == 33) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -508,6 +506,7 @@ class BillPaymentController extends ApiResponseController
                             if ($seat['status']['code'] != 200) {
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
+                        // It creates in accounting a seat with 34 DTE data.
                         } elseif ($new_dte->dte_type_id == 34) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -539,6 +538,7 @@ class BillPaymentController extends ApiResponseController
                             if ($seat['status']['code'] != 200) {
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
+                        // It creates in accounting a seat with 56 DTE data.
                         } elseif ($new_dte->dte_type_id == 56) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -571,6 +571,7 @@ class BillPaymentController extends ApiResponseController
                             if ($seat['status']['code'] != 200) {
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
+                        // It creates in accounting a seat with 61 DTE data.
                         } elseif ($new_dte->dte_type_id == 61) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -611,6 +612,7 @@ class BillPaymentController extends ApiResponseController
             $dte = Dte::find($id);
             $dte->delete();
         } else {
+            // The DTE was splitted in this case. It counts how many they are.
             for ($i = 0; $i < count($splits); $i++) {
                 $id = $request->dte_id;
                 $dte = Dte::find($id);
@@ -628,6 +630,11 @@ class BillPaymentController extends ApiResponseController
                     $dte->status_id = 18;
                 }
                 if ($dte->save()) {
+                     /* 
+                        If they were stored successfully, it's necessary to send this information to accounting.
+                        So it will depend about what kind of DTE you are sending because it can be 33, 34, 39, 61.
+                    */
+                    // It checks if the DTE was sent or received. dte_version_id = 1 sent. dte_version_id = 2 received.
                     if ($dte->dte_version_id == 1) {
                         if ($dte->dte_type_id == 33) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
@@ -864,7 +871,7 @@ class BillPaymentController extends ApiResponseController
     }
 
     /**
-     * Impute the specified resource in storage.
+     * Refresh to find the records in libreDTE.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -872,34 +879,34 @@ class BillPaymentController extends ApiResponseController
      */
     public function refresh(Request $request)
     {
-        // datos a utilizar
+        // It connects to an API.
         $url = 'https://libredte.cl';
         $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
         $rut = '76063822-6';
         $until = date('Y-m-d');
         $since = date('Y-m-d', strtotime($until.'- 5 days'));
         $until = date('Y-m-d');
-
-        // crear cliente
         $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
 
-        // hacer la búsqueda de los DTEs
+        // It is necessary to put the date.
         $data = [
             'fecha_desde' => $since,
             'fecha_hasta' => $until,
         ];
+        // It goes to find the records in the libreDTE.
         $search = $LibreDTE->post('/dte/dte_recibidos/buscar/'.$rut, $data);
         if ($search['status']['code'] != 200) {
             exit('Error al realizar la búsqueda de DTEs emitidos: '.$search['body']."\n");
         }
-
         for ($i = 0; $i < count($search['body']); $i++) {
+            // It create the verificator index of the RUT. it is necessary because the suppliers come without that digit.
             $s = 1;
             $r = $search['body'][$i]['emisor'];
             for ($m = 0; $r != 0; $r /= 10) {
                 $s = ($s + $r % 10 * (9 - $m++ % 6)) % 11;
             }
             $index = chr($s ? $s + 47 : 75);
+            /////////////////
             $rut = $search['body'][$i]['emisor'].'-'.$index;
             $user_qty = User::where('rut', $search['body'][$i]['emisor'])->count();
             if ($user_qty == 0) {
@@ -913,11 +920,12 @@ class BillPaymentController extends ApiResponseController
                 $supplier->payment_commitment = 30;
                 $supplier->save();
             }
-
+            // It checks if the DTE exists in the table.
             $dte_qty = Dte::where('folio', $search['body'][$i]['folio'])
                             ->where('dte_version_id', '2')
                             ->count();
             if ($dte_qty == 0) {
+                // It stores a new DTE in the table.
                 $dte = new Dte;
                 $dte->rut = $search['body'][$i]['emisor'].'-'.$index;
                 $dte->folio = $search['body'][$i]['folio'];

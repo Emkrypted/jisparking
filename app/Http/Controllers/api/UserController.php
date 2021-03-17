@@ -10,6 +10,22 @@ use Illuminate\Http\Request;
 
 class UserController extends ApiResponseController
 {
+    public function __construct(Request $request)
+    {
+        // It's necessary to check if the user has the permissions.
+        $this->user = User::where('api_token', $request->api_token)->first();
+
+        // It checks if the user is rol_id = 4 because if it is, it's necessary to get all the branch offices which they belong to this supervisor.
+        if ($this->user->rol_id == 4) {
+            // It finds a supervisor by rut.
+            $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
+        } else {
+            // If it's not supervisor it just needs to return all the branch offices.
+            $this->branch_offices = BranchOffice::all();
+            $this->branch_offices->toArray();
+        }
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -17,6 +33,7 @@ class UserController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It return a specific user.
         $user = User::where('api_token', $request->api_token)->first();
 
         return $this->successResponse($user);
@@ -96,6 +113,7 @@ class UserController extends ApiResponseController
      */
     public function list(Request $request)
     {
+        // It returns a list of users.
         $users = User::all();
 
         return $this->successResponse($users);
