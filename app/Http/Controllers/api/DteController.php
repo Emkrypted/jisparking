@@ -45,6 +45,7 @@ class DteController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $branch_office_id = $request->segment(4);
         $status_id = $request->segment(5);
         $since = $request->segment(6);
@@ -53,6 +54,7 @@ class DteController extends ApiResponseController
         $dte_version_id = $request->segment(9);
         $rut = $request->segment(10);
         $supervisor_id = $request->segment(11);
+        // It checks if any of them exist or they are nulled.
         if (($branch_office_id == 'null' && $status_id == 'null' && $since == 'null' && $until == 'null' && $folio == 'null' && $dte_version_id == 'null' && $rut == 'null' && $supervisor_id == 'null')
         || ($branch_office_id == '' && $status_id == '' && $since == '' && $until == '' && $folio == '' && $dte_version_id == '' && $rut == '' && $supervisor_id == '')
         ) {
@@ -98,12 +100,11 @@ class DteController extends ApiResponseController
                         ->paginate(10);
             }
         } else {
+            // If they are not empty, it's necessary to use them to create the database query
             $query = '';
-
             if ($branch_office_id != 'null') {
                 $query .= 'c.branch_office_id = '.$branch_office_id;
             }
-
             if ($status_id != 'null') {
                 if ($branch_office_id != 'null') {
                     $query .= ' AND ';
@@ -111,7 +112,6 @@ class DteController extends ApiResponseController
 
                 $query .= 'c.status_id = '.$status_id;
             }
-
             if ($since != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null') {
                     $query .= ' AND ';
@@ -119,7 +119,6 @@ class DteController extends ApiResponseController
 
                 $query .= '(c.created_at >= "'.$since.' 00:00:00")';
             }
-
             if ($until != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null' || $since != 'null') {
                     $query .= ' AND ';
@@ -127,7 +126,6 @@ class DteController extends ApiResponseController
 
                 $query .= '(c.created_at <= "'.$until.' 23:59:59")';
             }
-
             if ($folio != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null' || $since != 'null' || $until != 'null') {
                     $query .= ' AND ';
@@ -135,7 +133,6 @@ class DteController extends ApiResponseController
 
                 $query .= 'c.folio = "'.$folio.'"';
             }
-
             if ($dte_version_id != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null' || $since != 'null' || $until != 'null' || $folio != 'null') {
                     $query .= ' AND ';
@@ -143,7 +140,6 @@ class DteController extends ApiResponseController
 
                 $query .= 'c.dte_version_id = '.$dte_version_id.'';
             }
-
             if ($rut != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null' || $since != 'null' || $until != 'null' || $folio != 'null' || $dte_version_id != 'null') {
                     $query .= ' AND ';
@@ -151,7 +147,6 @@ class DteController extends ApiResponseController
 
                 $query .= 'c.rut = "'.$rut.'"';
             }
-
             if ($supervisor_id != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null' || $since != 'null' || $until != 'null' || $folio != 'null' || $dte_version_id != 'null' || $rut != 'null') {
                     $query .= ' AND ';
@@ -159,7 +154,6 @@ class DteController extends ApiResponseController
 
                 $query .= 'branch_offices.supervisor_id = "'.$supervisor_id.'"';
             }
-
             $dtes = Dte::from('dtes as c')
                         ->selectRaw('c.payment_date as payment_date, users.names as names, c.dte_id as dte_id, branch_offices.branch_office as branch_office, c.folio as folio, c.dte_version_id as dte_version_id, dte_types.dte_type as dte_type, c.amount as amount, c.dte_type_id as dte_type_id, c.created_at as created_at, c.status_id as status_id, statuses.status as status')
                         ->leftJoin('users', 'users.rut', '=', 'c.rut')
@@ -195,21 +189,18 @@ class DteController extends ApiResponseController
      */
     public function store(Request $request)
     {
-        if ($request->special == 1) {
-            // Se guarda los datos de la boleta.
-            $dte = new Dte;
-            $dte->rut = $request->rut;
-            $dte->folio = $request->folio;
-            $dte->branch_office_id = $request->branch_office_id;
-            $dte->dte_type_id = 39;
-            $dte->dte_version_id = 1;
-            $dte->amount = $request->amount;
-            $dte->expense_type_id = 0;
-            $dte->temporal_code = $request->temporal_code;
-            $dte->status_id = 17;
-            $dte->created_at = $request->created_at;
-            $dte->save();
-        }
+        $dte = new Dte;
+        $dte->rut = $request->rut;
+        $dte->folio = $request->folio;
+        $dte->branch_office_id = $request->branch_office_id;
+        $dte->dte_type_id = 39;
+        $dte->dte_version_id = 1;
+        $dte->amount = $request->amount;
+        $dte->expense_type_id = 0;
+        $dte->temporal_code = $request->temporal_code;
+        $dte->status_id = 17;
+        $dte->created_at = $request->created_at;
+        $dte->save();
 
         return $this->successResponse($dte);
     }

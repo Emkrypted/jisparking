@@ -67,6 +67,7 @@ class BillPaymentController extends ApiResponseController
                                 ->orderBy('users.names', 'DESC')
                                 ->paginate(10);
         } else {
+            // It checks every variable.
             $query = '';
 
             if ($supplier_dte_id != 'null') {

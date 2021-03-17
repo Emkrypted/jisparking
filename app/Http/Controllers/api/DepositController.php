@@ -72,12 +72,11 @@ class DepositController extends ApiResponseController
                                 ->paginate(10);
             }
         } else {
+            // If they are not empty, it's necessary to use them to create the database query.
             $query = '';
-
             if ($branch_office_id != 'null') {
                 $query .= 'branch_office_id = '.$branch_office_id;
             }
-
             if ($status_id != 'null') {
                 if ($branch_office_id != 'null') {
                     $query .= ' AND ';
@@ -85,7 +84,6 @@ class DepositController extends ApiResponseController
 
                 $query .= 'status_id = '.$status_id;
             }
-
             if ($since != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null') {
                     $query .= ' AND ';
@@ -93,7 +91,6 @@ class DepositController extends ApiResponseController
 
                 $query .= '(created_at >= "'.$since.' 00:00:00")';
             }
-
             if ($until != 'null') {
                 if ($branch_office_id != 'null' || $status_id != 'null' || $since != 'null') {
                     $query .= ' AND ';
@@ -101,7 +98,6 @@ class DepositController extends ApiResponseController
 
                 $query .= '(created_at <= "'.$until.' 23:59:59")';
             }
-
             $deposits = Deposit::where('deposit_type_id', 1)
                     ->whereRaw($query)
                     ->with('branch_office')

@@ -42,9 +42,11 @@ class SettlementController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $rut = $request->segment(4);
         $father_lastname = $request->segment(5);
         $branch_office_id = $request->segment(6);
+        // It checks if any of them exist or they are nulled.
         if (($rut == 'null' && $father_lastname == 'null' && $branch_office_id == 'null')
         || ($rut == '' && $father_lastname == '' && $branch_office_id == '')
         ) {

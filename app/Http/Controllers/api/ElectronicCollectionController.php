@@ -39,8 +39,10 @@ class ElectronicCollectionController extends ApiResponseController
      */
     public function index(Request $request)
     {
+        // It gets the information sent by the url path.
         $branch_office_id = $request->segment(4);
         $created_at = $request->segment(5);
+        // It checks if any of them exist or they are nulled.
         if (($branch_office_id == 'null' && $created_at == 'null')
         || ($branch_office_id == '' && $created_at == '')
         ) {
@@ -70,6 +72,7 @@ class ElectronicCollectionController extends ApiResponseController
                                         ->paginate(10);
             }
         } else {
+            // If they are not empty, it's necessary to use them to create the database query
             $query = '';
 
             if ($branch_office_id != 'null') {
