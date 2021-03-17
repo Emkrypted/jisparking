@@ -6,9 +6,9 @@ use App\BranchOffice;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
 use App\Transbank;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use DB;
 
 class TransbankController extends ApiResponseController
 {
@@ -53,7 +53,7 @@ class TransbankController extends ApiResponseController
         $year = $request->year_id;
         $date = $year.'-'.$month.'-01';
         $collections = Transbank::whereDate('created_at', '=', $date)->get();
-        foreach($collections as $collection) {
+        foreach ($collections as $collection) {
             $transbank = Transbank::find($collection->transbank_collection_id);
             $transbank->delete();
         }
@@ -77,7 +77,7 @@ class TransbankController extends ApiResponseController
                 $date = explode('/', $detail[0]);
                 $branch_office = BranchOffice::where('transbank_code', $detail[1])->first();
                 $branch_office_qty = BranchOffice::where('transbank_code', $detail[1])->count();
-                if($branch_office_qty > 0) {
+                if ($branch_office_qty > 0) {
                     $transbank = new Transbank;
                     $transbank->branch_office_id = $branch_office->branch_office_id;
                     $transbank->transbank_id = $detail[1];

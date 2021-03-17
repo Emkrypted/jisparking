@@ -61,7 +61,7 @@ class CustomerController extends ApiResponseController
         if ($customer['status']['code'] != 200) {
             exit('Error al emitir DTE temporal: '.$customer['body']."\n");
         }
-        
+
         return $this->successResponse($customer);
     }
 

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
 use App\Cashier;
-use App\Settlement;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
+use App\Settlement;
 use App\User;
 use Auth;
 use DB;
@@ -23,7 +23,7 @@ class SettlementController extends ApiResponseController
 
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -45,14 +45,14 @@ class SettlementController extends ApiResponseController
         if (($rut == 'null' && $father_lastname == 'null' && $branch_office_id == 'null')
         || ($rut == '' && $father_lastname == '' && $branch_office_id == '')
         ) {
-            if($this->user->rol_id != 1) {
+            if ($this->user->rol_id != 1) {
                 $branch_offices = $this->branch_offices;
                 $query = '';
-                for($i = 0; $i < count($branch_offices); $i++) {
-                    if($i == 0) {
-                            $query .= 'employees.branch_office_id = '.$branch_offices[$i];
+                for ($i = 0; $i < count($branch_offices); $i++) {
+                    if ($i == 0) {
+                        $query .= 'employees.branch_office_id = '.$branch_offices[$i];
                     } else {
-                            $query .= ' OR employees.branch_office_id = '.$branch_offices[$i];
+                        $query .= ' OR employees.branch_office_id = '.$branch_offices[$i];
                     }
                 }
 
@@ -101,7 +101,7 @@ class SettlementController extends ApiResponseController
                         ->orderBy('c.year', 'DESC')
                         ->paginate(10);
         }
-        
+
         return $this->successResponse($settlements);
     }
 

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\api;
 
-use App\User;
 use App\Employee;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
+use App\User;
 use Illuminate\Http\Request;
 
 class EmployeeController extends ApiResponseController
@@ -22,7 +22,7 @@ class EmployeeController extends ApiResponseController
                         ->where('rol_id', '!=', 18)
                         ->orderBy('names', 'asc')
                         ->get();
-        
+
         return $this->successResponse($users);
     }
 
@@ -33,7 +33,7 @@ class EmployeeController extends ApiResponseController
         $employees = Employee::where('branch_office_id', $branch_office_id)
                         ->orderBy('names', 'asc')
                         ->get();
-        
+
         return $this->successResponse($employees);
     }
 

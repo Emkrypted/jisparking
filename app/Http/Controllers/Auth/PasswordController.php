@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Auth;
 use App\User;
+use Auth;
 use Illuminate\Http\Request;
 use Session;
 
@@ -22,7 +22,7 @@ class PasswordController extends Controller
         return view('auth.password', compact('rut'));
     }
 
-     /**
+    /**
      * Retrieve the user data to log into the site.
      *
      * @return \Illuminate\Http\Response

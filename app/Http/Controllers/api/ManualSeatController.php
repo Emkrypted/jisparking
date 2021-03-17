@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
-use App\Dte;
-use App\Customer;
 use App\Commune;
+use App\Customer;
+use App\Dte;
 use App\ExpenseType;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
@@ -22,7 +22,7 @@ class ManualSeatController extends ApiResponseController
 
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -68,60 +68,57 @@ class ManualSeatController extends ApiResponseController
         $amount = $request->amount;
         $message = $branch_office->branch_office.'_'.$accounting_account.'_'.$utf8_date.'_AsientoLibre';
 
-        if($request->tax_id == 1)
-        {
+        if ($request->tax_id == 1) {
             $url = 'https://libredte.cl';
             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
             $creator = '76063822-6';
             $data = [
-                        'fecha' => $date,
-                        'glosa' => $message,
-                        'detalle' => [
-                            'debe' => [
-                                111000102 => round($amount),
-                            ],
-                            'haber' => [
-                                $accounting_account => round($amount/1.19),
-                                221000226 => round($amount - ($amount/1.19)),
-                            ],
-                        ],
-                        'operacion' => 'I',
-                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
-                        ]; 
+                'fecha' => $date,
+                'glosa' => $message,
+                'detalle' => [
+                    'debe' => [
+                        111000102 => round($amount),
+                    ],
+                    'haber' => [
+                        $accounting_account => round($amount / 1.19),
+                        221000226 => round($amount - ($amount / 1.19)),
+                    ],
+                ],
+                'operacion' => 'I',
+                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
+            ];
 
             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-            if ($seat['status']['code']!=200) {
-                die('Error al crear el asiento contable: '.$seat['body']."\n");
+            if ($seat['status']['code'] != 200) {
+                exit('Error al crear el asiento contable: '.$seat['body']."\n");
             }
-        }
-        else
-        {
+        } else {
             $url = 'https://libredte.cl';
             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
             $creator = '76063822-6';
             $data = [
-                        'fecha' => $date,
-                        'glosa' => $message,
-                        'detalle' => [
-                            'debe' => [
-                                111000102 => round($amount),
-                            ],
-                            'haber' => [
-                                $accounting_account => round($amount),
-                            ],
-                        ],
-                        'operacion' => 'I',
-                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
-                        ];
+                'fecha' => $date,
+                'glosa' => $message,
+                'detalle' => [
+                    'debe' => [
+                        111000102 => round($amount),
+                    ],
+                    'haber' => [
+                        $accounting_account => round($amount),
+                    ],
+                ],
+                'operacion' => 'I',
+                'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
+            ];
 
             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-            if ($seat['status']['code']!=200) {
-                die('Error al crear el asiento contable: '.$seat['body']."\n");
+            if ($seat['status']['code'] != 200) {
+                exit('Error al crear el asiento contable: '.$seat['body']."\n");
             }
         }
-        
+
         return $this->successResponse($seat);
     }
 
@@ -185,7 +182,7 @@ class ManualSeatController extends ApiResponseController
      */
     public function generate(Request $request)
     {
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $dte_type_id = $request->dte_type_id;
             $branch_office_id = $request->branch_office_id;
             $rut = $request->rut;
@@ -263,7 +260,7 @@ class ManualSeatController extends ApiResponseController
                     ],
                 ],
             ];
-            
+
             // crear cliente
             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
 
@@ -274,7 +271,7 @@ class ManualSeatController extends ApiResponseController
                 exit('Error al emitir DTE temporal: '.$emitir['body']."\n");
             }
             $temporal_code = serialize($emitir['body']);
-            
+
             // Generamos la boleta o factura.
             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
 
@@ -337,10 +334,10 @@ class ManualSeatController extends ApiResponseController
             $branch_office = BranchOffice::find($dte->branch_office_id);
             $utf8_date = date('d-m-Y');
             $date = date('Y-m');
-            $date = $date .'-01';
+            $date = $date.'-01';
             $expense_type = ExpenseType::find($dte->expense_type_id);
 
-            if($request->dte_type_id == 33) {
+            if ($request->dte_type_id == 33) {
                 $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_Factura_'.$dte->dte_id;
                 $url = 'https://libredte.cl';
                 $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
@@ -353,8 +350,8 @@ class ManualSeatController extends ApiResponseController
                             111000102 => $amount, // banco total
                         ],
                         'haber' => [
-                            $expense_type->accounting_account => round($amount/1.19), // venta abonados neto
-                            221000226 => round($amount - ($amount/1.19)), // iva débito
+                            $expense_type->accounting_account => round($amount / 1.19), // venta abonados neto
+                            221000226 => round($amount - ($amount / 1.19)), // iva débito
                         ],
                     ],
                     'operacion' => 'I',
@@ -363,34 +360,34 @@ class ManualSeatController extends ApiResponseController
 
                 $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                 $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                if ($seat['status']['code']!=200) {
-                    die('Error al crear el asiento contable: '.$seat['body']."\n");
+                if ($seat['status']['code'] != 200) {
+                    exit('Error al crear el asiento contable: '.$seat['body']."\n");
                 }
-            } else if($request->dte_type_id == 39) {
+            } elseif ($request->dte_type_id == 39) {
                 $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_BoletaElectronica_'.$dte->dte_id;
                 $url = 'https://libredte.cl';
                 $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                 $creator = '76063822-6';
                 $data = [
-                        'fecha' => $date,
-                        'glosa' => $message,
-                        'detalle' => [
-                                    'debe' => [
-                                            111000102 => $amount, // banco total
-                                        ],
-                                        'haber' => [
-                                            $expense_type->accounting_account => round($amount/1.19),
-                                            221000226 => round($amount - ($amount/1.19)),
-                                        ],
-                                    ],
-                                    'operacion' => 'I',
-                                    'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                ];
+                    'fecha' => $date,
+                    'glosa' => $message,
+                    'detalle' => [
+                        'debe' => [
+                            111000102 => $amount, // banco total
+                        ],
+                        'haber' => [
+                            $expense_type->accounting_account => round($amount / 1.19),
+                            221000226 => round($amount - ($amount / 1.19)),
+                        ],
+                    ],
+                    'operacion' => 'I',
+                    'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                ];
 
                 $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                 $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                if ($seat['status']['code']!=200) {
-                    die('Error al crear el asiento contable: '.$seat['body']."\n");
+                if ($seat['status']['code'] != 200) {
+                    exit('Error al crear el asiento contable: '.$seat['body']."\n");
                 }
             }
         }
@@ -453,7 +450,7 @@ class ManualSeatController extends ApiResponseController
                 ],
             ],
         ];
-        
+
         // crear cliente
         $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
 
@@ -464,7 +461,7 @@ class ManualSeatController extends ApiResponseController
             exit('Error al emitir DTE temporal: '.$emitir['body']."\n");
         }
         $temporal_code = serialize($emitir['body']);
-        
+
         // Generamos la boleta o factura.
         $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
 
@@ -482,14 +479,14 @@ class ManualSeatController extends ApiResponseController
         $dte->temporal_code = $temporal_code;
         $dte->status_id = 18;
         $dte->created_at = date('Y:m:d 00:00:00');
-        if($dte->save()) {
-            if($dte->dte_version_id == 1) {
-                if($dte->dte_type_id == 33) {
+        if ($dte->save()) {
+            if ($dte->dte_version_id == 1) {
+                if ($dte->dte_type_id == 33) {
                     $branch_office = BranchOffice::find($dte->branch_office_id);
-                    $utf8_date = explode("-", $request->period);
+                    $utf8_date = explode('-', $request->period);
                     $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                     $date = $dte->period;
-                    $date = $date .'-01';
+                    $date = $date.'-01';
                     $amount = $new_dte->amount;
                     $expense_type = ExpenseType::find($dte->expense_type_id);
                     $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_Factura_'.$dte->dte_id;
@@ -497,31 +494,31 @@ class ManualSeatController extends ApiResponseController
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $date,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        111000102 => $amount, // banco total
-                                    ],
-                                    'haber' => [
-                                        $expense_type->accounting_account => round($amount/1.19), // venta abonados neto
-                                        221000226 => round($amount - ($amount/1.19)), // iva débito
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                            ];
+                        'fecha' => $date,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                111000102 => $amount, // banco total
+                            ],
+                            'haber' => [
+                                $expense_type->accounting_account => round($amount / 1.19), // venta abonados neto
+                                221000226 => round($amount - ($amount / 1.19)), // iva débito
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ];
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
-                } else if($dte->dte_type_id == 39) {
+                } elseif ($dte->dte_type_id == 39) {
                     $branch_office = BranchOffice::find($dte->branch_office_id);
-                    $utf8_date = explode("-", $request->period);
+                    $utf8_date = explode('-', $request->period);
                     $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                     $date = $dte->period;
-                    $date = $date .'-01';
+                    $date = $date.'-01';
                     $amount = $dte->amount;
                     $expense_type = ExpenseType::find($dte->expense_type_id);
                     $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_BoletaElectronica_'.$dte->dte_id;
@@ -529,31 +526,31 @@ class ManualSeatController extends ApiResponseController
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $date,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        111000102 => $amount, // banco total
-                                    ],
-                                    'haber' => [
-                                        $expense_type->accounting_account => round($amount/1.19),
-                                        221000226 => round($amount - ($amount/1.19)),
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                            ];
+                        'fecha' => $date,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                111000102 => $amount, // banco total
+                            ],
+                            'haber' => [
+                                $expense_type->accounting_account => round($amount / 1.19),
+                                221000226 => round($amount - ($amount / 1.19)),
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ];
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
-                } else if($dte->dte_type_id == 61) {
+                } elseif ($dte->dte_type_id == 61) {
                     $branch_office = BranchOffice::find($dte->branch_office_id);
-                    $utf8_date = explode("-", $request->period);
+                    $utf8_date = explode('-', $request->period);
                     $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                     $date = $dte->period;
-                    $date = $date .'-01';
+                    $date = $date.'-01';
                     $amount = $dte->amount;
                     $expense_type = ExpenseType::find($dte->expense_type_id);
                     $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_NotaCredito_'.$dte->dte_id;
@@ -561,33 +558,33 @@ class ManualSeatController extends ApiResponseController
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $date,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        $expense_type->accounting_account => round($amount/1.19), // venta abonados neto
-                                        221000226 => round($amount - ($amount/1.19)), // iva débito
-                                    ],
-                                    'haber' => [
-                                        111000102 => $amount, // banco total
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                            ];
+                        'fecha' => $date,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                $expense_type->accounting_account => round($amount / 1.19), // venta abonados neto
+                                221000226 => round($amount - ($amount / 1.19)), // iva débito
+                            ],
+                            'haber' => [
+                                111000102 => $amount, // banco total
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ];
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 }
             } else {
-                if($dte->dte_type_id == 33) {
+                if ($dte->dte_type_id == 33) {
                     $branch_office = BranchOffice::find($dte->branch_office_id);
-                    $utf8_date = explode("-", $request->period);
+                    $utf8_date = explode('-', $request->period);
                     $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                     $date = $dte->period;
-                    $date = $date .'-01';
+                    $date = $date.'-01';
                     $amount = $dte->amount;
                     $expense_type = ExpenseType::find($dte->expense_type_id);
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_FacturaCompra_'.$dte->dte_id;
@@ -595,31 +592,31 @@ class ManualSeatController extends ApiResponseController
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                            'fecha' => $date,
-                            'glosa' => $message,
-                            'detalle' => [
-                                'debe' => [
-                                    trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                    111000122 => round($amount - ($amount/1.19)), // iva débito
-                                ],
-                                'haber' => [
-                                    111000102 => $amount, // banco total
-                                ],
+                        'fecha' => $date,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                111000122 => round($amount - ($amount / 1.19)), // iva débito
                             ],
-                            'operacion' => 'I',
-                            'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                        ];
+                            'haber' => [
+                                111000102 => $amount, // banco total
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ];
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
-                } else if($dte->dte_type_id == 34) {
+                } elseif ($dte->dte_type_id == 34) {
                     $branch_office = BranchOffice::find($dte->branch_office_id);
-                    $utf8_date = explode("-", $request->period);
+                    $utf8_date = explode('-', $request->period);
                     $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                     $date = $dte->period;
-                    $date = $date .'-01';
+                    $date = $date.'-01';
                     $amount = $dte->amount;
                     $expense_type = ExpenseType::find($dte->expense_type_id);
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_ExentaCompra_'.$dte->dte_id;
@@ -627,30 +624,30 @@ class ManualSeatController extends ApiResponseController
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $date,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        trim($expense_type->accounting_account) => $amount, // venta abonados neto
-                                    ],
-                                    'haber' => [
-                                        111000102 => $amount, // banco total
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                            ];
+                        'fecha' => $date,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                trim($expense_type->accounting_account) => $amount, // venta abonados neto
+                            ],
+                            'haber' => [
+                                111000102 => $amount, // banco total
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ];
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
-                } else if($dte->dte_type_id == 56) {
+                } elseif ($dte->dte_type_id == 56) {
                     $branch_office = BranchOffice::find($dte->branch_office_id);
-                    $utf8_date = explode("-", $request->period);
+                    $utf8_date = explode('-', $request->period);
                     $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                     $date = $dte->period;
-                    $date = $date .'-01';
+                    $date = $date.'-01';
                     $amount = $dte->amount;
                     $expense_type = ExpenseType::find($dte->expense_type_id);
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_NotaDebitoCompra_'.$dte->dte_id;
@@ -658,31 +655,31 @@ class ManualSeatController extends ApiResponseController
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $date,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        111000102 => $amount, // banco total
-                                    ],
-                                    'haber' => [
-                                        trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                        111000122 => round($amount - ($amount/1.19)), // iva débito
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                            ];
+                        'fecha' => $date,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                111000102 => $amount, // banco total
+                            ],
+                            'haber' => [
+                                trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                111000122 => round($amount - ($amount / 1.19)), // iva débito
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ];
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
-                } else if($dte->dte_type_id == 61) {
+                } elseif ($dte->dte_type_id == 61) {
                     $branch_office = BranchOffice::find($dte->branch_office_id);
-                    $utf8_date = explode("-", $request->period);
+                    $utf8_date = explode('-', $request->period);
                     $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                     $date = $dte->period;
-                    $date = $date .'-01';
+                    $date = $date.'-01';
                     $amount = $dte->amount;
                     $expense_type = ExpenseType::find($dte->expense_type_id);
                     $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_NotaCreditoCompra_'.$new_dte->dte_id;
@@ -690,24 +687,24 @@ class ManualSeatController extends ApiResponseController
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $creator = '76063822-6';
                     $data = [
-                                'fecha' => $date,
-                                'glosa' => $message,
-                                'detalle' => [
-                                    'debe' => [
-                                        trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                        111000122 => round($amount - ($amount/1.19)), // iva débito
-                                    ],
-                                    'haber' => [
-                                        111000102 => $amount, // banco total
-                                    ],
-                                ],
-                                'operacion' => 'I',
-                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                            ];
+                        'fecha' => $date,
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                111000122 => round($amount - ($amount / 1.19)), // iva débito
+                            ],
+                            'haber' => [
+                                111000102 => $amount, // banco total
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ];
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                    if ($seat['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$seat['body']."\n");
+                    if ($seat['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$seat['body']."\n");
                     }
                 }
             }
@@ -725,8 +722,8 @@ class ManualSeatController extends ApiResponseController
     {
         $splits = $request->input('splits');
         $splits = json_decode($splits);
-        if(count($splits) > 1) {
-            for($i = 0; $i < count($splits); $i++) {
+        if (count($splits) > 1) {
+            for ($i = 0; $i < count($splits); $i++) {
                 $id = $request->dte_id;
                 $dte = Dte::find($id);
                 if ($request->comment != '') {
@@ -738,7 +735,7 @@ class ManualSeatController extends ApiResponseController
                 $dte->expense_type_id = $request->expense_type_id;
                 $dte->payment_date = $request->payment_date;
                 $dte->payment_type_id = $request->payment_type_id;
-                if($dte->dte_version_id == 1) {
+                if ($dte->dte_version_id == 1) {
                     $dte->status_id = 17;
                 } else {
                     $dte->status_id = 18;
@@ -760,14 +757,14 @@ class ManualSeatController extends ApiResponseController
                 $new_dte->comment = $dte->comment;
                 $new_dte->temporal_code = $dte->temporal_code;
                 $new_dte->created_at = $dte->created_at;
-                if($new_dte->save()) {
-                    if($new_dte->dte_version_id == 1) {
-                        if($new_dte->dte_type_id == 33) {
+                if ($new_dte->save()) {
+                    if ($new_dte->dte_version_id == 1) {
+                        if ($new_dte->dte_type_id == 33) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
-                            $utf8_date = explode("-", $new_dte->period);
+                            $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $new_dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $new_dte->amount;
                             $expense_type = ExpenseType::find($new_dte->expense_type_id);
                             $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_Factura_'.$new_dte->dte_id;
@@ -775,31 +772,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                            'haber' => [
-                                                $expense_type->accounting_account => round($amount/1.19), // venta abonados neto
-                                                221000226 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                    'haber' => [
+                                        $expense_type->accounting_account => round($amount / 1.19), // venta abonados neto
+                                        221000226 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($new_dte->dte_type_id == 39) {
+                        } elseif ($new_dte->dte_type_id == 39) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
-                            $utf8_date = explode("-", $new_dte->period);
+                            $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $new_dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $new_dte->amount;
                             $expense_type = ExpenseType::find($new_dte->expense_type_id);
                             $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_BoletaElectronica_'.$new_dte->dte_id;
@@ -807,31 +804,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                            'haber' => [
-                                                $expense_type->accounting_account => round($amount/1.19),
-                                                221000226 => round($amount - ($amount/1.19)),
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                    'haber' => [
+                                        $expense_type->accounting_account => round($amount / 1.19),
+                                        221000226 => round($amount - ($amount / 1.19)),
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($new_dte->dte_type_id == 61) {
+                        } elseif ($new_dte->dte_type_id == 61) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
-                            $utf8_date = explode("-", $new_dte->period);
+                            $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $new_dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $new_dte->amount;
                             $expense_type = ExpenseType::find($new_dte->expense_type_id);
                             $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_NotaCredito_'.$new_dte->dte_id;
@@ -839,33 +836,33 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                $expense_type->accounting_account => round($amount/1.19), // venta abonados neto
-                                                221000226 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                            'haber' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        $expense_type->accounting_account => round($amount / 1.19), // venta abonados neto
+                                        221000226 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
                         }
                     } else {
-                        if($new_dte->dte_type_id == 33) {
+                        if ($new_dte->dte_type_id == 33) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
-                            $utf8_date = explode("-", $new_dte->period);
+                            $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $new_dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $new_dte->amount;
                             $expense_type = ExpenseType::find($new_dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_FacturaCompra_'.$new_dte->dte_id;
@@ -873,31 +870,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                    'fecha' => $date,
-                                    'glosa' => $message,
-                                    'detalle' => [
-                                        'debe' => [
-                                            trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                            111000122 => round($amount - ($amount/1.19)), // iva débito
-                                        ],
-                                        'haber' => [
-                                            111000102 => $amount, // banco total
-                                        ],
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                        111000122 => round($amount - ($amount / 1.19)), // iva débito
                                     ],
-                                    'operacion' => 'I',
-                                    'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                ];
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($new_dte->dte_type_id == 34) {
+                        } elseif ($new_dte->dte_type_id == 34) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
-                            $utf8_date = explode("-", $new_dte->period);
+                            $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $new_dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $new_dte->amount;
                             $expense_type = ExpenseType::find($new_dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_ExentaCompra_'.$new_dte->dte_id;
@@ -905,30 +902,30 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                trim($expense_type->accounting_account) => $amount, // venta abonados neto
-                                            ],
-                                            'haber' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        trim($expense_type->accounting_account) => $amount, // venta abonados neto
+                                    ],
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($new_dte->dte_type_id == 56) {
+                        } elseif ($new_dte->dte_type_id == 56) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
-                            $utf8_date = explode("-", $new_dte->period);
+                            $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $new_dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $new_dte->amount;
                             $expense_type = ExpenseType::find($new_dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_NotaDebitoCompra_'.$new_dte->dte_id;
@@ -936,31 +933,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                            'haber' => [
-                                                trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                                111000122 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                    'haber' => [
+                                        trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                        111000122 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($new_dte->dte_type_id == 61) {
+                        } elseif ($new_dte->dte_type_id == 61) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
-                            $utf8_date = explode("-", $new_dte->period);
+                            $utf8_date = explode('-', $new_dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $new_dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $new_dte->amount;
                             $expense_type = ExpenseType::find($new_dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_NotaCreditoCompra_'.$new_dte->dte_id;
@@ -968,24 +965,24 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                                111000122 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                            'haber' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                        111000122 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$new_dte->dte_type_id, 'folio'=>$new_dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
                         }
                     }
@@ -995,7 +992,7 @@ class ManualSeatController extends ApiResponseController
             $dte = Dte::find($id);
             $dte->delete();
         } else {
-            for($i = 0; $i < count($splits); $i++) {
+            for ($i = 0; $i < count($splits); $i++) {
                 $id = $request->dte_id;
                 $dte = Dte::find($id);
                 if ($request->comment != '') {
@@ -1006,19 +1003,19 @@ class ManualSeatController extends ApiResponseController
                 $dte->expense_type_id = $request->expense_type_id;
                 $dte->payment_date = $request->payment_date;
                 $dte->payment_type_id = $request->payment_type_id;
-                if($dte->dte_version_id == 1) {
+                if ($dte->dte_version_id == 1) {
                     $dte->status_id = 17;
                 } else {
                     $dte->status_id = 18;
                 }
-                if($dte->save()) {
-                    if($dte->dte_version_id == 1) {
-                        if($dte->dte_type_id == 33) {
+                if ($dte->save()) {
+                    if ($dte->dte_version_id == 1) {
+                        if ($dte->dte_type_id == 33) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
-                            $utf8_date = explode("-", $dte->period);
+                            $utf8_date = explode('-', $dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $dte->amount;
                             $expense_type = ExpenseType::find($dte->expense_type_id);
                             $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_Factura_'.$dte->dte_id;
@@ -1026,31 +1023,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                            'haber' => [
-                                                $expense_type->accounting_account => round($amount/1.19), // venta abonados neto
-                                                221000226 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                    'haber' => [
+                                        $expense_type->accounting_account => round($amount / 1.19), // venta abonados neto
+                                        221000226 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($dte->dte_type_id == 39) {
+                        } elseif ($dte->dte_type_id == 39) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
-                            $utf8_date = explode("-", $dte->period);
+                            $utf8_date = explode('-', $dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $dte->amount;
                             $expense_type = ExpenseType::find($dte->expense_type_id);
                             $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_BoletaElectronica_'.$dte->dte_id;
@@ -1058,31 +1055,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                            'haber' => [
-                                                $expense_type->accounting_account => round($amount/1.19),
-                                                221000226 => round($amount - ($amount/1.19)),
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                    'haber' => [
+                                        $expense_type->accounting_account => round($amount / 1.19),
+                                        221000226 => round($amount - ($amount / 1.19)),
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($dte->dte_type_id == 61) {
+                        } elseif ($dte->dte_type_id == 61) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
-                            $utf8_date = explode("-", $dte->period);
+                            $utf8_date = explode('-', $dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $dte->amount;
                             $expense_type = ExpenseType::find($dte->expense_type_id);
                             $message = $branch_office->branch_office.'_441000102_'.$utf8_date.'_NotaCredito_'.$dte->dte_id;
@@ -1090,33 +1087,33 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                $expense_type->accounting_account => round($amount/1.19), // venta abonados neto
-                                                221000226 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                            'haber' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        $expense_type->accounting_account => round($amount / 1.19), // venta abonados neto
+                                        221000226 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
                         }
                     } else {
-                        if($dte->dte_type_id == 33) {
+                        if ($dte->dte_type_id == 33) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
-                            $utf8_date = explode("-", $dte->period);
+                            $utf8_date = explode('-', $dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $dte->amount;
                             $expense_type = ExpenseType::find($dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_FacturaCompra_'.$dte->dte_id;
@@ -1124,31 +1121,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                    'fecha' => $date,
-                                    'glosa' => $message,
-                                    'detalle' => [
-                                        'debe' => [
-                                            trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                            111000122 => round($amount - ($amount/1.19)), // iva débito
-                                        ],
-                                        'haber' => [
-                                            111000102 => $amount, // banco total
-                                        ],
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                        111000122 => round($amount - ($amount / 1.19)), // iva débito
                                     ],
-                                    'operacion' => 'I',
-                                    'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                ];
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($dte->dte_type_id == 34) {
+                        } elseif ($dte->dte_type_id == 34) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
-                            $utf8_date = explode("-", $dte->period);
+                            $utf8_date = explode('-', $dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $dte->amount;
                             $expense_type = ExpenseType::find($dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_ExentaCompra_'.$dte->dte_id;
@@ -1156,30 +1153,30 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                trim($expense_type->accounting_account) => $amount, // venta abonados neto
-                                            ],
-                                            'haber' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        trim($expense_type->accounting_account) => $amount, // venta abonados neto
+                                    ],
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($dte->dte_type_id == 56) {
+                        } elseif ($dte->dte_type_id == 56) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
-                            $utf8_date = explode("-", $dte->period);
+                            $utf8_date = explode('-', $dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $dte->amount;
                             $expense_type = ExpenseType::find($dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_NotaDebitoCompra_'.$dte->dte_id;
@@ -1187,31 +1184,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                            'haber' => [
-                                                trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                                111000122 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                    'haber' => [
+                                        trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                        111000122 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        } else if($dte->dte_type_id == 61) {
+                        } elseif ($dte->dte_type_id == 61) {
                             $branch_office = BranchOffice::find($dte->branch_office_id);
-                            $utf8_date = explode("-", $dte->period);
+                            $utf8_date = explode('-', $dte->period);
                             $utf8_date = '01-'.'-'.$utf8_date[1].'-'.$utf8_date[0];
                             $date = $dte->period;
-                            $date = $date .'-01';
+                            $date = $date.'-01';
                             $amount = $dte->amount;
                             $expense_type = ExpenseType::find($dte->expense_type_id);
                             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_NotaCreditoCompra_'.$new_dte->dte_id;
@@ -1219,31 +1216,31 @@ class ManualSeatController extends ApiResponseController
                             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                             $creator = '76063822-6';
                             $data = [
-                                        'fecha' => $date,
-                                        'glosa' => $message,
-                                        'detalle' => [
-                                            'debe' => [
-                                                trim($expense_type->accounting_account) => round($amount/1.19), // venta abonados neto
-                                                111000122 => round($amount - ($amount/1.19)), // iva débito
-                                            ],
-                                            'haber' => [
-                                                111000102 => $amount, // banco total
-                                            ],
-                                        ],
-                                        'operacion' => 'I',
-                                        'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                    ];
+                                'fecha' => $date,
+                                'glosa' => $message,
+                                'detalle' => [
+                                    'debe' => [
+                                        trim($expense_type->accounting_account) => round($amount / 1.19), // venta abonados neto
+                                        111000122 => round($amount - ($amount / 1.19)), // iva débito
+                                    ],
+                                    'haber' => [
+                                        111000102 => $amount, // banco total
+                                    ],
+                                ],
+                                'operacion' => 'I',
+                                'documentos' => ['emitidos'=>[['dte'=>$dte->dte_type_id, 'folio'=>$dte->folio]]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                            ];
                             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                             $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                            if ($seat['status']['code']!=200) {
-                                die('Error al crear el asiento contable: '.$seat['body']."\n");
+                            if ($seat['status']['code'] != 200) {
+                                exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
                         }
                     }
                 }
-            }    
+            }
         }
-        
+
         return $this->successResponse($dte);
     }
 
@@ -1256,14 +1253,14 @@ class ManualSeatController extends ApiResponseController
      */
     public function refresh(Request $request)
     {
-        if($request->rut != null) {
+        if ($request->rut != null) {
             // datos a utilizar
             $url = 'https://libredte.cl';
             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
             $rut = '76063822-6';
-            $until = date('Y-m-d'); 
-            $since = date("Y-m-d",strtotime($until."- 5 days"));
-            $until = date('Y-m-d');  
+            $until = date('Y-m-d');
+            $since = date('Y-m-d', strtotime($until.'- 5 days'));
+            $until = date('Y-m-d');
 
             // crear cliente
             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
@@ -1272,30 +1269,30 @@ class ManualSeatController extends ApiResponseController
             $data = [
                 'fecha_desde' => $since,
                 'fecha_hasta' => $until,
-                'emisor' => $request->rut
+                'emisor' => $request->rut,
             ];
             $search = $LibreDTE->post('/dte/dte_recibidos/buscar/'.$rut, $data);
-            if ($search['status']['code']!=200) {
-                die('Error al realizar la búsqueda de DTEs emitidos: '.$search['body']."\n");
+            if ($search['status']['code'] != 200) {
+                exit('Error al realizar la búsqueda de DTEs emitidos: '.$search['body']."\n");
             }
 
-            for($i = 0; $i < count($search['body']); $i++) {
+            for ($i = 0; $i < count($search['body']); $i++) {
                 $s = 1;
                 $r = $search['body'][$i]['emisor'];
-                for($m=0;$r!=0;$r/=10) {
-                    $s = ($s+$r%10*(9-$m++%6))%11;
+                for ($m = 0; $r != 0; $r /= 10) {
+                    $s = ($s + $r % 10 * (9 - $m++ % 6)) % 11;
                 }
-                $index = chr($s?$s+47:75);
-                $rut = $search['body'][$i]['emisor'] .'-'. $index;
+                $index = chr($s ? $s + 47 : 75);
+                $rut = $search['body'][$i]['emisor'].'-'.$index;
                 $user_qty = User::where('rut', $search['body'][$i]['emisor'])->count();
-                if($user_qty == 0) {
+                if ($user_qty == 0) {
                     $user = new User;
-                    $user->rut = $search['body'][$i]['emisor'] .'-'. $index;
+                    $user->rut = $search['body'][$i]['emisor'].'-'.$index;
                     $user->names = $search['body'][$i]['razon_social'];
                     $user->rol_id = 18;
                     $user->save();
                     $supplier = new Supplier;
-                    $supplier->rut = $search['body'][$i]['emisor'] .'-'. $index;
+                    $supplier->rut = $search['body'][$i]['emisor'].'-'.$index;
                     $supplier->payment_commitment = 30;
                     $supplier->save();
                 }
@@ -1303,20 +1300,20 @@ class ManualSeatController extends ApiResponseController
                 $dte_qty = Dte::where('folio', $search['body'][$i]['folio'])
                                 ->where('dte_version_id', '2')
                                 ->count();
-                if($dte_qty == 0) {
+                if ($dte_qty == 0) {
                     $dte = new Dte;
-                    $dte->rut = $search['body'][$i]['emisor'] .'-'. $index;
+                    $dte->rut = $search['body'][$i]['emisor'].'-'.$index;
                     $dte->folio = $search['body'][$i]['folio'];
                     $dte->branch_office_id = 80;
                     $dte->dte_type_id = $search['body'][$i]['dte'];
-                    if($search['body'][$i]['dte'] == 61) {
+                    if ($search['body'][$i]['dte'] == 61) {
                         $dte->amount = $search['body'][$i]['total'] * -1;
                     } else {
                         $dte->amount = $search['body'][$i]['total'];
                     }
                     $dte->dte_version_id = 2;
                     $dte->status_id = 6;
-                    $dte->created_at = $search['body'][$i]['fecha'] .' 00:00:00';
+                    $dte->created_at = $search['body'][$i]['fecha'].' 00:00:00';
                     $dte->save();
                 }
             }
@@ -1327,9 +1324,9 @@ class ManualSeatController extends ApiResponseController
             $url = 'https://libredte.cl';
             $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
             $rut = '76063822-6';
-            $until = date('Y-m-d'); 
-            $since = date("Y-m-d",strtotime($until."- 5 days"));
-            $until = date('Y-m-d');  
+            $until = date('Y-m-d');
+            $since = date('Y-m-d', strtotime($until.'- 5 days'));
+            $until = date('Y-m-d');
 
             // crear cliente
             $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
@@ -1340,27 +1337,27 @@ class ManualSeatController extends ApiResponseController
                 'fecha_hasta' => $until,
             ];
             $search = $LibreDTE->post('/dte/dte_recibidos/buscar/'.$rut, $data);
-            if ($search['status']['code']!=200) {
-                die('Error al realizar la búsqueda de DTEs emitidos: '.$search['body']."\n");
+            if ($search['status']['code'] != 200) {
+                exit('Error al realizar la búsqueda de DTEs emitidos: '.$search['body']."\n");
             }
 
-            for($i = 0; $i < count($search['body']); $i++) {
+            for ($i = 0; $i < count($search['body']); $i++) {
                 $s = 1;
                 $r = $search['body'][$i]['emisor'];
-                for($m=0;$r!=0;$r/=10) {
-                    $s = ($s+$r%10*(9-$m++%6))%11;
+                for ($m = 0; $r != 0; $r /= 10) {
+                    $s = ($s + $r % 10 * (9 - $m++ % 6)) % 11;
                 }
-                $index = chr($s?$s+47:75);
-                $rut = $search['body'][$i]['emisor'] .'-'. $index;
+                $index = chr($s ? $s + 47 : 75);
+                $rut = $search['body'][$i]['emisor'].'-'.$index;
                 $user_qty = User::where('rut', $search['body'][$i]['emisor'])->count();
-                if($user_qty == 0) {
+                if ($user_qty == 0) {
                     $user = new User;
-                    $user->rut = $search['body'][$i]['emisor'] .'-'. $index;
+                    $user->rut = $search['body'][$i]['emisor'].'-'.$index;
                     $user->names = $search['body'][$i]['razon_social'];
                     $user->rol_id = 18;
                     $user->save();
                     $supplier = new Supplier;
-                    $supplier->rut = $search['body'][$i]['emisor'] .'-'. $index;
+                    $supplier->rut = $search['body'][$i]['emisor'].'-'.$index;
                     $supplier->payment_commitment = 30;
                     $supplier->save();
                 }
@@ -1368,24 +1365,23 @@ class ManualSeatController extends ApiResponseController
                 $dte_qty = Dte::where('folio', $search['body'][$i]['folio'])
                                 ->where('dte_version_id', '2')
                                 ->count();
-                if($dte_qty == 0) {
+                if ($dte_qty == 0) {
                     $dte = new Dte;
-                    $dte->rut = $search['body'][$i]['emisor'] .'-'. $index;
+                    $dte->rut = $search['body'][$i]['emisor'].'-'.$index;
                     $dte->folio = $search['body'][$i]['folio'];
                     $dte->branch_office_id = 80;
                     $dte->dte_type_id = $search['body'][$i]['dte'];
-                    if($search['body'][$i]['dte'] == 61) {
+                    if ($search['body'][$i]['dte'] == 61) {
                         $dte->amount = $search['body'][$i]['total'] * -1;
                     } else {
                         $dte->amount = $search['body'][$i]['total'];
                     }
                     $dte->dte_version_id = 2;
                     $dte->status_id = 6;
-                    $dte->created_at = $search['body'][$i]['fecha'] .' 00:00:00';
+                    $dte->created_at = $search['body'][$i]['fecha'].' 00:00:00';
                     $dte->save();
                 }
             }
         }
-        
     }
 }

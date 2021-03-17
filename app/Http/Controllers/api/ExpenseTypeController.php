@@ -16,7 +16,7 @@ class ExpenseTypeController extends ApiResponseController
      */
     public function index()
     {
-        $expense_types = ExpenseType::where('visibility_dte_id', 1)-> orderBy('expense_type', 'asc')->get();
+        $expense_types = ExpenseType::where('visibility_dte_id', 1)->orderBy('expense_type', 'asc')->get();
 
         return $this->successResponse($expense_types);
     }
@@ -28,11 +28,10 @@ class ExpenseTypeController extends ApiResponseController
      */
     public function list()
     {
-        $expense_types = ExpenseType::where('visibility_capitulation_id', 1)-> orderBy('expense_type', 'asc')->get();
+        $expense_types = ExpenseType::where('visibility_capitulation_id', 1)->orderBy('expense_type', 'asc')->get();
 
         return $this->successResponse($expense_types);
     }
-
 
     /**
      * Show the form for creating a new resource.
