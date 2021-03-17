@@ -17,7 +17,7 @@ class ContractController extends ApiResponseController
      */
     public function index()
     {
-       //
+        //
     }
 
     /**

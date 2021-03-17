@@ -24,7 +24,7 @@ class CollectionController extends ApiResponseController
 
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -47,19 +47,19 @@ class CollectionController extends ApiResponseController
         if (($branch_office_id == 'null' && $created_at == 'null' && $status_id == 'null' && $supervisor_id == 'null')
         || ($branch_office_id == '' && $created_at == '' && $status_id == '' && $supervisor_id == '')
         ) {
-            if($this->user->rol_id != 1) {
+            if ($this->user->rol_id != 1) {
                 $branch_offices = $this->branch_offices;
                 $query = '';
-                for($i = 0; $i < count($branch_offices); $i++) {
-                    if($i == 0) {
+                for ($i = 0; $i < count($branch_offices); $i++) {
+                    if ($i == 0) {
                         $query .= '(c.branch_office_id = '.$branch_offices[$i];
                     } else {
                         $query .= ' OR c.branch_office_id = '.$branch_offices[$i];
                     }
                 }
 
-                $query .= ")";
-                                        
+                $query .= ')';
+
                 $collections = Collection::from('collections as c')
                                         ->whereRaw($query)
                                         ->selectRaw('c.z_inform_number as z_inform_number, statuses.status_id as status_id, c.collection_id as collection_id, branch_offices.branch_office as branch_office, cashiers.cashier as cashier, c.gross_amount as gross_amount, c.net_amount as net_amount, c.ticket_number as ticket_number, statuses.status as status, c.created_at as created_at')
@@ -103,7 +103,7 @@ class CollectionController extends ApiResponseController
                 if ($created_at != 'null' || $branch_office_id != 'null' || $status_id != 'null') {
                     $query .= ' AND ';
                 }
-                
+
                 $query .= 'branch_offices.supervisor_id = "'.$supervisor_id.'"';
             }
 
@@ -118,7 +118,7 @@ class CollectionController extends ApiResponseController
                      ->orderBy('c.created_at', 'DESC')
                      ->paginate(10);
         }
-        
+
         return $this->successResponse($collections);
     }
 
@@ -160,7 +160,7 @@ class CollectionController extends ApiResponseController
             $card_gross_amount = $request->card_gross_amount;
             $card_net_amount = round($card_gross_amount / 1.19);
             $collection->card_net_amount = $card_net_amount;
-            
+
             $collection->status_id = 7;
             $collection->collection_type_id = 2;
             if ($collection->save()) {
@@ -248,7 +248,7 @@ class CollectionController extends ApiResponseController
     public function update(Request $request, $id)
     {
         $collection = Collection::find($id);
-        
+
         if ($request->branch_office_id != '') {
             $collection->branch_office_id = $request->branch_office_id;
         }
@@ -303,12 +303,12 @@ class CollectionController extends ApiResponseController
         }
         $collection->save();
 
-        if($request->branch_office_id != '' && $request->created_at != '') {
+        if ($request->branch_office_id != '' && $request->created_at != '') {
             $deposit_qty = Deposit::where('branch_office_id', $collection->branch_office_id)
                         ->where('collection_date', $collection->created_at)
                         ->count();
 
-            if($deposit_qty > 0) {
+            if ($deposit_qty > 0) {
                 $deposit = Deposit::where('branch_office_id', $collection->branch_office_id)
                         ->where('collection_date', $collection->created_at)
                         ->first();

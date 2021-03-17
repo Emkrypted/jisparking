@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Requirement;
-use App\PettyCash;
-use App\Maintenance;
-use App\Honorary;
-use App\ExpenseType;
-use App\User;
-use App\Publicity;
 use App\BranchOffice;
+use App\ExpenseType;
+use App\Honorary;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
+use App\Maintenance;
+use App\PettyCash;
+use App\Publicity;
+use App\Requirement;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;
@@ -58,16 +58,16 @@ class RequirementController extends ApiResponseController
      */
     public function store(Request $request)
     {
-        if($request->requirement_type_id == 1) {
+        if ($request->requirement_type_id == 1) {
             $rut = $request->user_id;
             $status_id = 25;
-        } else if($request->requirement_type_id == 2) {
+        } elseif ($request->requirement_type_id == 2) {
             $rut = $request->rut;
             $status_id = 9;
-        } else if($request->requirement_type_id == 3) {
+        } elseif ($request->requirement_type_id == 3) {
             $rut = $this->user->rut;
             $status_id = 12;
-        } else if($request->requirement_type_id == 4) {
+        } elseif ($request->requirement_type_id == 4) {
             $rut = $this->user->rut;
             $status_id = 12;
         }
@@ -76,14 +76,14 @@ class RequirementController extends ApiResponseController
         $requirement->rut = $rut;
         $requirement->status_id = $status_id;
         $requirement->step1_date = date('Y-m-d');
-        if($requirement->save()) {
-            if($requirement->requirement_type_id == 1) {
+        if ($requirement->save()) {
+            if ($requirement->requirement_type_id == 1) {
                 $petty_cash = new PettyCash;
                 $petty_cash->requirement_id = $requirement->requirement_id;
                 $petty_cash->rut = $request->user_id;
                 $petty_cash->gross_amount = $request->gross_amount;
                 $petty_cash->save();
-            } else if($requirement->requirement_type_id == 2) {
+            } elseif ($requirement->requirement_type_id == 2) {
                 $honorary = new Honorary;
                 $honorary->requirement_id = $requirement->requirement_id;
                 $honorary->branch_office_id = $request->branch_office_id;
@@ -100,7 +100,7 @@ class RequirementController extends ApiResponseController
                 $honorary->end_date = $request->end_date;
                 $honorary->employee_to_replace = $request->employee_to_replace;
                 $honorary->save();
-            } else if($requirement->requirement_type_id == 3) {
+            } elseif ($requirement->requirement_type_id == 3) {
                 $fileName = time().'_'.'requerimiento'.'.'.$request->file->getClientOriginalExtension();
                 $maintenance = new Maintenance;
                 $maintenance->requirement_id = $requirement->requirement_id;
@@ -114,7 +114,7 @@ class RequirementController extends ApiResponseController
                         $fileName
                     );
                 }
-            } else if($requirement->requirement_type_id == 4) {
+            } elseif ($requirement->requirement_type_id == 4) {
                 $publicity = new Publicity;
                 $publicity->requirement_id = $requirement->requirement_id;
                 $publicity->branch_office_id = $request->branch_office_id;
@@ -146,6 +146,7 @@ class RequirementController extends ApiResponseController
     public function edit($id)
     {
         $requirement = Requirement::find($id);
+
         return $this->successResponse($requirement);
     }
 
@@ -159,8 +160,8 @@ class RequirementController extends ApiResponseController
     public function update(Request $request, $id)
     {
         $requirement = Requirement::find($id);
-    
-        if($requirement->requirement_type_id == 1) {
+
+        if ($requirement->requirement_type_id == 1) {
             $requirement->step2_date = date('Y-m-d');
             $requirement->status_id = 17;
             ///////////
@@ -176,7 +177,7 @@ class RequirementController extends ApiResponseController
                     $fileName
                 );
             }
-        } else if($requirement->requirement_type_id == 2) {
+        } elseif ($requirement->requirement_type_id == 2) {
             $requirement->status_id = 27;
 
             $honorary = Honorary::where('requirement_id', $id)->first();
@@ -189,21 +190,21 @@ class RequirementController extends ApiResponseController
             $dte = [
                 'Encabezado' => [
                     'IdDoc' => [
-                        'FchEmis' => date('Y-m-d')
+                        'FchEmis' => date('Y-m-d'),
                     ],
                     'Emisor' => [
-                        'RUTEmisor' => '76063822-6'
+                        'RUTEmisor' => '76063822-6',
                     ],
                     'Receptor' => [
                         'RUTRecep' => $honorary->rut,
                         'RznSocRecep' => $honorary->full_name,
-                        'DirRecep' =>  $honorary->address
+                        'DirRecep' =>  $honorary->address,
                     ],
                 ],
                 'Detalle' => [
                     [
                         'NmbItem' => 'Boleta de Honorarios para '.$honorary->full_name,
-                        'MontoItem' => $request->amount
+                        'MontoItem' => $request->amount,
                     ],
                 ],
             ];
@@ -215,13 +216,13 @@ class RequirementController extends ApiResponseController
             // $LibreDTE->setSSL(false, false); ///< segundo parámetro =false desactiva verificación de SSL
             // crear DTE temporal
             $emitir = $LibreDTE->post('/dte/boleta_terceros/emitir', $dte);
-            if ($emitir['status']['code']!=200) {
-                die('Error al emitir la boleta a terceros: '.$emitir['body']."\n");
+            if ($emitir['status']['code'] != 200) {
+                exit('Error al emitir la boleta a terceros: '.$emitir['body']."\n");
             }
 
             $request->expense_type_id = 38;
-        } else if($requirement->requirement_type_id == 3) {
-            if($request->end == '') {
+        } elseif ($requirement->requirement_type_id == 3) {
+            if ($request->end == '') {
                 $requirement->step2_date = date('Y-m-d');
                 $requirement->status_id = 26;
                 ///////////
@@ -246,8 +247,8 @@ class RequirementController extends ApiResponseController
                 }
             }
             $request->expense_type_id = 9;
-        } else if($requirement->requirement_type_id == 4) {
-            if($request->end == '') {
+        } elseif ($requirement->requirement_type_id == 4) {
+            if ($request->end == '') {
                 $requirement->step2_date = date('Y-m-d');
                 $requirement->status_id = 26;
                 ///////////
@@ -275,8 +276,8 @@ class RequirementController extends ApiResponseController
         }
 
         $requirement->save();
-        
-        if($request->end == '') {
+
+        if ($request->end == '') {
             $period = date('m-Y');
             $date = explode('-', $period);
             $utf8_date = '01-'.$period;
@@ -287,57 +288,54 @@ class RequirementController extends ApiResponseController
             $amount = $request->amount;
             $message = $branch_office->branch_office.'_'.$expense_type->accounting_account.'_'.$utf8_date.'_FacturaCompra_'.$requirement->requirement_id;
 
-            if($request->is_bill == 1)
-            {
+            if ($request->is_bill == 1) {
                 $url = 'https://libredte.cl';
                 $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                 $creator = '76063822-6';
                 $data = [
-                            'fecha' => $date,
-                            'glosa' => $message,
-                            'detalle' => [
-                                'debe' => [
-                                    111000102 => round($amount),
-                                ],
-                                'haber' => [
-                                    $accounting_account => round($amount/1.19),
-                                    221000226 => round($amount - ($amount/1.19)),
-                                ],
-                            ],
-                            'operacion' => 'I',
-                            'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
-                            ]; 
+                    'fecha' => $date,
+                    'glosa' => $message,
+                    'detalle' => [
+                        'debe' => [
+                            111000102 => round($amount),
+                        ],
+                        'haber' => [
+                            $accounting_account => round($amount / 1.19),
+                            221000226 => round($amount - ($amount / 1.19)),
+                        ],
+                    ],
+                    'operacion' => 'I',
+                    'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
+                ];
 
                 $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                 $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                if ($seat['status']['code']!=200) {
-                    die('Error al crear el asiento contable: '.$seat['body']."\n");
+                if ($seat['status']['code'] != 200) {
+                    exit('Error al crear el asiento contable: '.$seat['body']."\n");
                 }
-            }
-            else
-            {
+            } else {
                 $url = 'https://libredte.cl';
                 $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                 $creator = '76063822-6';
                 $data = [
-                            'fecha' => $date,
-                            'glosa' => $message,
-                            'detalle' => [
-                                'debe' => [
-                                    111000102 => round($amount),
-                                ],
-                                'haber' => [
-                                    $accounting_account => round($amount),
-                                ],
-                            ],
-                            'operacion' => 'I',
-                            'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
-                            ];
+                    'fecha' => $date,
+                    'glosa' => $message,
+                    'detalle' => [
+                        'debe' => [
+                            111000102 => round($amount),
+                        ],
+                        'haber' => [
+                            $accounting_account => round($amount),
+                        ],
+                    ],
+                    'operacion' => 'I',
+                    'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=>'']]],
+                ];
 
                 $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                 $seat = $LibreDTE->post('/lce/lce_asientos/crear/'.$creator, $data);
-                if ($seat['status']['code']!=200) {
-                    die('Error al crear el asiento contable: '.$seat['body']."\n");
+                if ($seat['status']['code'] != 200) {
+                    exit('Error al crear el asiento contable: '.$seat['body']."\n");
                 }
             }
         }

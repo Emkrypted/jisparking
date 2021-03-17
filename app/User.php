@@ -5,11 +5,11 @@ namespace App;
 use App\Customer;
 use App\Employee;
 use App\Rol;
+use Auth;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use LaravelAndVueJS\Traits\LaravelPermissionToVueJS;
-use Auth;
 
 class User extends Authenticatable
 {

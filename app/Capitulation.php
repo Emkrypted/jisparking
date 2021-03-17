@@ -19,7 +19,7 @@ class Capitulation extends Model
     {
         return $this->belongsTo(ExpenseType::class, 'expense_type_id');
     }
-    
+
     /**
      * Get the post that owns the comment.
      */

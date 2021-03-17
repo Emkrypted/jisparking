@@ -4,9 +4,9 @@ namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
 use App\Deposit;
-use App\User;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;
@@ -17,7 +17,7 @@ class ElectronicDepositController extends ApiResponseController
     {
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -40,18 +40,18 @@ class ElectronicDepositController extends ApiResponseController
         if (($branch_office_id == 'null' && $status_id == 'null' && $since == 'null' && $until == 'null')
         || ($branch_office_id == '' && $status_id == '' && $since == '' && $until == '')
         ) {
-            if($this->user->rol_id != 1) {
+            if ($this->user->rol_id != 1) {
                 $branch_offices = $this->branch_offices;
                 $query = '';
-                for($i = 0; $i < count($branch_offices); $i++) {
-                    if($i == 0) {
+                for ($i = 0; $i < count($branch_offices); $i++) {
+                    if ($i == 0) {
                         $query .= '(c.branch_office_id = '.$branch_offices[$i];
                     } else {
                         $query .= ' OR c.branch_office_id = '.$branch_offices[$i];
                     }
                 }
 
-                $query .= ")";
+                $query .= ')';
 
                 $deposits = Deposit::from('deposits as c')
                                 ->whereRaw($query)

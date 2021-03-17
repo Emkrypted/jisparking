@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Publicity;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
+use App\Publicity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;

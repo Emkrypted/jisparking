@@ -4,9 +4,9 @@ namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
 use App\Collection;
-use App\User;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
+use App\User;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -20,7 +20,7 @@ class ElectronicCollectionController extends ApiResponseController
 
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -41,11 +41,11 @@ class ElectronicCollectionController extends ApiResponseController
         if (($branch_office_id == 'null' && $created_at == 'null')
         || ($branch_office_id == '' && $created_at == '')
         ) {
-            if($this->user->rol_id != 1) {
+            if ($this->user->rol_id != 1) {
                 $branch_offices = $this->branch_offices;
                 $query = '';
-                for($i = 0; $i < count($branch_offices); $i++) {
-                    if($i == 0) {
+                for ($i = 0; $i < count($branch_offices); $i++) {
+                    if ($i == 0) {
                         $query .= 'branch_office_id = '.$branch_offices[$i];
                     } else {
                         $query .= ' OR branch_office_id = '.$branch_offices[$i];
@@ -191,7 +191,7 @@ class ElectronicCollectionController extends ApiResponseController
      */
     public function update(Request $request, $id)
     {
-        if($request->special == 1) {
+        if ($request->special == 1) {
             $collection = Collection::where('branch_office_id', $request->branch_office_id)
                                     ->where('cashier_id', $request->cashier_id)
                                     ->where('created_at', '>=', $request->created_at)
@@ -207,7 +207,7 @@ class ElectronicCollectionController extends ApiResponseController
             $collection = Collection::find($id);
         }
 
-        if($collection_qty > 0) {
+        if ($collection_qty > 0) {
             if ($request->branch_office_id != '') {
                 $collection->branch_office_id = $request->branch_office_id;
             }

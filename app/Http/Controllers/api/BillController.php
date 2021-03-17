@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
-use App\Dte;
-use App\Customer;
 use App\Commune;
+use App\Customer;
+use App\Dte;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
 use App\Supplier;
@@ -20,7 +20,7 @@ class BillController extends ApiResponseController
         $this->dropbox = Storage::disk('dropbox')->getDriver()->getAdapter()->getClient();
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -43,19 +43,19 @@ class BillController extends ApiResponseController
         if (($branch_office_id == 'null' && $rut == 'null' && $status_id == 'null' && $supervisor_id == 'null')
         || ($branch_office_id == '' && $rut == '' && $status_id == '' && $supervisor_id == '')
         ) {
-            if($this->user->rol_id != 1) {
+            if ($this->user->rol_id != 1) {
                 $branch_offices = $this->branch_offices;
                 $query = 'c.dte_type_id = 33 AND c.dte_version_id = 1 AND c.status_id <> 18 AND c.status_id <> 19';
                 $query .= ' AND ';
-                for($i = 0; $i < count($branch_offices); $i++) {
-                    if($i == 0) {
-                            $query .= '(c.branch_office_id = '.$branch_offices[$i];
+                for ($i = 0; $i < count($branch_offices); $i++) {
+                    if ($i == 0) {
+                        $query .= '(c.branch_office_id = '.$branch_offices[$i];
                     } else {
-                            $query .= ' OR c.branch_office_id = '.$branch_offices[$i];
+                        $query .= ' OR c.branch_office_id = '.$branch_offices[$i];
                     }
                 }
 
-                $query .= ")";
+                $query .= ')';
 
                 $dtes = Dte::from('dtes as c')
                         ->selectRaw('users.rut as rut, users.names as names, c.dte_id as dte_id, branch_offices.branch_office as branch_office, c.folio as folio, c.dte_version_id as dte_version_id, c.amount as amount, c.dte_type_id as dte_type_id, c.created_at as created_at, c.status_id as status_id, statuses.status as status')
@@ -95,7 +95,7 @@ class BillController extends ApiResponseController
             }
 
             if ($status_id != 'null') {
-                if ($branch_office_id != 'null' || $rut != 'null' ) {
+                if ($branch_office_id != 'null' || $rut != 'null') {
                     $query .= ' AND ';
                 }
 
@@ -123,7 +123,7 @@ class BillController extends ApiResponseController
                         ->orderBy('c.status_id', 'DESC')
                         ->paginate(10);
         }
-        
+
         return $this->successResponse($dtes);
     }
 
@@ -145,7 +145,7 @@ class BillController extends ApiResponseController
      */
     public function store(Request $request)
     {
-        if($request->special == 1) {
+        if ($request->special == 1) {
             // Se guarda los datos de la boleta.
             $dte = new Dte;
             $dte->rut = $request->rut;
@@ -160,7 +160,7 @@ class BillController extends ApiResponseController
             $dte->created_at = $request->created_at;
             $dte->save();
         }
-        
+
         return $this->successResponse($dte);
     }
 

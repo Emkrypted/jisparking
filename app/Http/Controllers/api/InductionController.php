@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
-use App\Induction;
-use App\User;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
+use App\Induction;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,7 +18,7 @@ class InductionController extends ApiResponseController
 
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -62,7 +62,7 @@ class InductionController extends ApiResponseController
         $induction->title = $request->title;
         $induction->iframe = $request->iframe;
         $induction->save();
-        
+
         return $this->successResponse($induction);
     }
 
