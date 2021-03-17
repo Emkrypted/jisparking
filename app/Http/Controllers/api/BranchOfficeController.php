@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\api;
 
 use App\BranchOffice;
-use App\User;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
+use App\User;
 use Illuminate\Http\Request;
 use Str;
 
@@ -15,7 +15,7 @@ class BranchOfficeController extends ApiResponseController
     {
         $this->user = User::where('api_token', $request->api_token)->first();
 
-        if($this->user->rol_id == 4) {
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('visibility_id', 1)->where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::where('visibility_id', 1)->get();
@@ -31,11 +31,11 @@ class BranchOfficeController extends ApiResponseController
      */
     public function index()
     {
-        if($this->user->rol_id != 1 && $this->user->rol_id != 11 && $this->user->rol_id != 16) {
+        if ($this->user->rol_id != 1 && $this->user->rol_id != 11 && $this->user->rol_id != 16) {
             $branch_offices = $this->branch_offices;
             $query = '';
-            for($i = 0; $i < count($branch_offices); $i++) {
-                if($i == 0) {
+            for ($i = 0; $i < count($branch_offices); $i++) {
+                if ($i == 0) {
                     $query .= 'branch_office_id = '.$branch_offices[$i];
                 } else {
                     $query .= ' OR branch_office_id = '.$branch_offices[$i];

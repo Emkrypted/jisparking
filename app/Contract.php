@@ -3,8 +3,8 @@
 namespace App;
 
 use App\BranchOffice;
-use App\User;
 use App\Status;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Contract extends Model

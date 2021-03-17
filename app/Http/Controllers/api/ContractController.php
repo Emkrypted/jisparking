@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Contract;
-use App\User;
 use App\BranchOffice;
-use App\Supplier;
+use App\Contract;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller;
+use App\Supplier;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;
@@ -17,8 +17,8 @@ class ContractController extends ApiResponseController
     public function __construct(Request $request)
     {
         $this->user = User::where('api_token', $request->api_token)->first();
-        $this->dropbox = Storage::disk('dropbox')->getDriver()->getAdapter()->getClient();  
-        if($this->user->rol_id == 4) {
+        $this->dropbox = Storage::disk('dropbox')->getDriver()->getAdapter()->getClient();
+        if ($this->user->rol_id == 4) {
             $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
         } else {
             $this->branch_offices = BranchOffice::all();
@@ -42,7 +42,7 @@ class ContractController extends ApiResponseController
             $contracts = Contract::orderBy('created_at', 'desc')
                         ->with('branch_office')
                         ->with('user')
-                        ->paginate(10); 
+                        ->paginate(10);
         } else {
             $query = '';
 
@@ -81,7 +81,7 @@ class ContractController extends ApiResponseController
         $supplier_qty = Supplier::where('rut', $request->rut)->count();
         $user_qty = User::where('rut', $request->rut)->count();
 
-        if($supplier_qty == 0 && $user_qty == 0 ) {
+        if ($supplier_qty == 0 && $user_qty == 0) {
             $supplier = new Supplier;
             $supplier->rut = $request->rut;
             $supplier->payment_commitment = 30;
@@ -161,7 +161,7 @@ class ContractController extends ApiResponseController
     public function destroy($id)
     {
         $contract = Contract::find($id);
-        if($contract->delete()) {
+        if ($contract->delete()) {
             $this->dropbox->delete('company_contracts/'.$contract->support);
         }
 

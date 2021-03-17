@@ -3,8 +3,8 @@
 namespace App;
 
 use App\BranchOffice;
-use App\User;
 use App\Customer;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Dte extends Model

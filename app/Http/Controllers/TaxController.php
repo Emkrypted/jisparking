@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Tax;
 use App\Http\Controllers\Controller;
+use App\Tax;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Dropbox\Client;
@@ -17,7 +17,7 @@ class TaxController extends ApiResponseController
      */
     public function index()
     {
-       //
+        //
     }
 
     /**

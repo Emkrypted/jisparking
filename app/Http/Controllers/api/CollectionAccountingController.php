@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Collection;
 use App\BranchOffice;
+use App\Collection;
 use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\Controller\api;
 use DB;
@@ -21,7 +21,7 @@ class CollectionAccountingController extends ApiResponseController
         $branch_office_id = $request->segment(4);
         $period = $request->segment(5);
         $collections = null;
-        if($branch_office_id != '' && $period != '') {
+        if ($branch_office_id != '' && $period != '') {
             $collections = Collection::from('collections as c')
                                 ->selectRaw('branch_offices.branch_office_id as branch_office_id, DATE(c.created_at) as collection_date, branch_offices.branch_office as branch_office_name, sum(c.gross_amount) as amount')
                                 ->leftJoin('branch_offices', 'branch_offices.branch_office_id', '=', 'c.branch_office_id')
@@ -55,47 +55,47 @@ class CollectionAccountingController extends ApiResponseController
     public function store(Request $request)
     {
         $selected = $request->input('selected');
-        $selected = explode(",", $selected);
-        for($i = 0; $i < count($selected); $i++) {
-            $selected_detail = explode("_", $selected[$i]);
-            for($j = 0; $j < count($selected_detail); $j++) {
+        $selected = explode(',', $selected);
+        for ($i = 0; $i < count($selected); $i++) {
+            $selected_detail = explode('_', $selected[$i]);
+            for ($j = 0; $j < count($selected_detail); $j++) {
                 $branch_office = BranchOffice::find($selected_detail[2]);
-                $utf8_date = explode("-", $selected_detail[0]);
+                $utf8_date = explode('-', $selected_detail[0]);
                 $utf8_date = $utf8_date[2].'-'.$utf8_date[1].'-'.$utf8_date[0];
                 $message = $branch_office->branch_office.'_441000101_'.$utf8_date.'_BoletaFiscal';
-                
-                if($selected_detail[1] > 0) {
+
+                if ($selected_detail[1] > 0) {
                     $url = 'https://libredte.cl';
                     $hash = 'JXou3uyrc7sNnP2ewOCX38tWZ6BTm4D1';
                     $emisor = '76063822-6';
                     $datos = [
-                                    'fecha' => $selected_detail[0],
-                                    'glosa' => $message,
-                                    'detalle' => [
-                                        'debe' => [
-                                            111000102 => $selected_detail[1], // banco total
-                                        ],
-                                        'haber' => [
-                                            441000101 => round($selected_detail[1]/1.19), // venta abonados neto
-                                            221000226 => round($selected_detail[1] - ($selected_detail[1]/1.19)), // iva débito
-                                        ],
-                                    ],
-                                    'operacion' => 'I',
-                                    'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=> '']]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
-                                ]; // este es un ejemplo de una venta, obviamente puede ser cualquier tipo de asiento contable
+                        'fecha' => $selected_detail[0],
+                        'glosa' => $message,
+                        'detalle' => [
+                            'debe' => [
+                                111000102 => $selected_detail[1], // banco total
+                            ],
+                            'haber' => [
+                                441000101 => round($selected_detail[1] / 1.19), // venta abonados neto
+                                221000226 => round($selected_detail[1] - ($selected_detail[1] / 1.19)), // iva débito
+                            ],
+                        ],
+                        'operacion' => 'I',
+                        'documentos' => ['emitidos'=>[['dte'=>'', 'folio'=> '']]], // esto es opcional, pero se recomienda ya que el SII lo puede pedir
+                    ]; // este es un ejemplo de una venta, obviamente puede ser cualquier tipo de asiento contable
                                 // incluir autocarga de composer
                     // crear cliente
                     print_r($datos);
                     $LibreDTE = new \sasco\LibreDTE\SDK\LibreDTE($hash, $url);
                     // crear asiento
                     $asiento = $LibreDTE->post('/lce/lce_asientos/crear/'.$emisor, $datos);
-                    if ($asiento['status']['code']!=200) {
-                        die('Error al crear el asiento contable: '.$asiento['body']."\n");
+                    if ($asiento['status']['code'] != 200) {
+                        exit('Error al crear el asiento contable: '.$asiento['body']."\n");
                     }
                 }
             }
         }
-        die();
+        exit();
 
         return $this->successResponse($collection);
     }
