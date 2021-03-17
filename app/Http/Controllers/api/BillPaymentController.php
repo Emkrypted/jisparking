@@ -129,7 +129,7 @@ class BillPaymentController extends ApiResponseController
      */
     public function store(Request $request)
     {
-        // It 
+        // It
         $date_now = date('d-m-Y');
         $date_past = strtotime('-30 day', strtotime($date_now));
         $date_past = date('d-m-Y', $date_past);
@@ -283,7 +283,7 @@ class BillPaymentController extends ApiResponseController
         if ($generar['status']['code'] != 200) {
             exit('Error al generar DTE real: '.$generar['body']."\n");
         }
-        // It stores the DTE data into the DTE table. 
+        // It stores the DTE data into the DTE table.
         /*
             Important: Checks the status_id in the table statuses.
         */
@@ -366,7 +366,7 @@ class BillPaymentController extends ApiResponseController
                 $new_dte->temporal_code = $dte->temporal_code;
                 $new_dte->created_at = $dte->created_at;
                 if ($new_dte->save()) {
-                    /* 
+                    /*
                         If they were stored successfully, it's necessary to send this information to accounting.
                         So it will depend about what kind of DTE you are sending because it can be 33, 34, 39, 61.
                     */
@@ -506,7 +506,7 @@ class BillPaymentController extends ApiResponseController
                             if ($seat['status']['code'] != 200) {
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        // It creates in accounting a seat with 34 DTE data.
+                            // It creates in accounting a seat with 34 DTE data.
                         } elseif ($new_dte->dte_type_id == 34) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -538,7 +538,7 @@ class BillPaymentController extends ApiResponseController
                             if ($seat['status']['code'] != 200) {
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        // It creates in accounting a seat with 56 DTE data.
+                            // It creates in accounting a seat with 56 DTE data.
                         } elseif ($new_dte->dte_type_id == 56) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -571,7 +571,7 @@ class BillPaymentController extends ApiResponseController
                             if ($seat['status']['code'] != 200) {
                                 exit('Error al crear el asiento contable: '.$seat['body']."\n");
                             }
-                        // It creates in accounting a seat with 61 DTE data.
+                            // It creates in accounting a seat with 61 DTE data.
                         } elseif ($new_dte->dte_type_id == 61) {
                             $branch_office = BranchOffice::find($new_dte->branch_office_id);
                             $utf8_date = explode('-', $new_dte->period);
@@ -630,9 +630,9 @@ class BillPaymentController extends ApiResponseController
                     $dte->status_id = 18;
                 }
                 if ($dte->save()) {
-                     /* 
-                        If they were stored successfully, it's necessary to send this information to accounting.
-                        So it will depend about what kind of DTE you are sending because it can be 33, 34, 39, 61.
+                    /*
+                       If they were stored successfully, it's necessary to send this information to accounting.
+                       So it will depend about what kind of DTE you are sending because it can be 33, 34, 39, 61.
                     */
                     // It checks if the DTE was sent or received. dte_version_id = 1 sent. dte_version_id = 2 received.
                     if ($dte->dte_version_id == 1) {
