@@ -86,6 +86,7 @@ class CollectionController extends ApiResponseController
                                         ->paginate(10);
             }
         } else {
+            // If they are not empty, it's necessary to use them to create the database query.
             $query = '';
 
             if ($branch_office_id != 'null') {
@@ -145,6 +146,7 @@ class CollectionController extends ApiResponseController
      */
     public function store(Request $request)
     {
+        // If the collection comes from any machine ubicated in a branch office, it's special = 1.
         if ($request->special == 1) {
             $branch_office_id = $request->branch_office_id;
             $branch_office = BranchOffice::find($branch_office_id);
@@ -152,22 +154,21 @@ class CollectionController extends ApiResponseController
             $user = User::where('rut', $supervisor_rut)->first();
             $cashier_id = $request->cashier_id;
             $cashier = Cashier::find($cashier_id);
+            // It stores the collection in the table.
             $collection = new Collection;
             $collection->branch_office_id = $request->branch_office_id;
             $collection->cashier_id = $request->cashier_id;
-
             $collection->gross_amount = $request->gross_amount;
             $gross_amount = $request->gross_amount;
             $net_amount = round($gross_amount / 1.19);
             $collection->net_amount = $net_amount;
-
             $collection->card_gross_amount = $request->card_gross_amount;
             $card_gross_amount = $request->card_gross_amount;
             $card_net_amount = round($card_gross_amount / 1.19);
             $collection->card_net_amount = $card_net_amount;
-
             $collection->status_id = 7;
             $collection->collection_type_id = 2;
+            /
             if ($collection->save()) {
                 $to_name = $user->names;
                 $to_email = $user->email;
@@ -180,21 +181,20 @@ class CollectionController extends ApiResponseController
 
             return $this->successResponse($collection);
         } else {
+            // If the colllection is not stored automaticly.
             $fileName = time().'_'.'recaudacion'.'_'.$request->branch_office_id.'_'.$request->cashier_id.'_'.$request->created_at.'.'.$request->file->getClientOriginalExtension();
+            // The collection is stored.
             $collection = new Collection;
             $collection->branch_office_id = $request->branch_office_id;
             $collection->cashier_id = $request->cashier_id;
-
             $collection->gross_amount = $request->gross_amount;
             $gross_amount = $request->gross_amount;
             $net_amount = round($gross_amount / 1.19);
             $collection->net_amount = $net_amount;
-
             $collection->card_gross_amount = $request->card_gross_amount;
             $card_gross_amount = $request->card_gross_amount;
             $card_net_amount = round($card_gross_amount / 1.19);
             $collection->card_net_amount = $card_net_amount;
-
             $collection->start_ticket = $request->start_ticket;
             $collection->end_ticket = $request->end_ticket;
             $start_ticket = $request->start_ticket;
@@ -207,6 +207,7 @@ class CollectionController extends ApiResponseController
             $collection->support = $fileName;
             $collection->status_id = 4;
             $collection->collection_type_id = 1;
+            // It uploads the collection picture in the dropbox.
             if ($collection->save()) {
                 Storage::disk('dropbox')->putFileAs(
                     'collections/',

@@ -22,11 +22,9 @@ class EnterController extends Controller
         $rut = $request->rut;
         $password = md5($request->password);
         /////////////////////
-
         // Count if there is some user with the given information.
         $user_qty = User::where('rut', $rut)->where('password', $password)->count();
         /////////////////////
-
         if ($user_qty > 0) {
             // Evaluate the information to check that there is a user with the given information.
             $user = User::with('rol')->where('rut', $rut)->where('password', $password)->first();
@@ -41,9 +39,7 @@ class EnterController extends Controller
                 }
                 Session::put('permissions', $permissions);
                 /////////////////////
-
                 // If the user exists it is sent to log in.
-
                 // Login the user.
                 if (! Auth::loginUsingId($user->rut, true)) {
                     // Redirect the user to login view if Auth function fails.

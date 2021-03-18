@@ -10,6 +10,24 @@ use Illuminate\Http\Request;
 
 class SupplierController extends ApiResponseController
 {
+    public function __construct(Request $request)
+    {
+        // It is used to connect to a dropbox account. It allows to get the client.
+        $this->dropbox = Storage::disk('dropbox')->getDriver()->getAdapter()->getClient();
+        // It's necessary to check if the user has the permissions.
+        $this->user = User::where('api_token', $request->api_token)->first();
+
+        // It checks if the user is rol_id = 4 because if it is, it's necessary to get all the branch offices which they belong to this supervisor.
+        if ($this->user->rol_id == 4) {
+            // It finds a supervisor by rut.
+            $this->branch_offices = BranchOffice::where('supervisor_id', $this->user->rut)->pluck('branch_office_id')->toArray();
+        } else {
+            // If it's not supervisor it just needs to return all the branch offices.
+            $this->branch_offices = BranchOffice::all();
+            $this->branch_offices->toArray();
+        }
+    }
+    
     /**
      * Display a listing of the resource.
      *

@@ -58,6 +58,7 @@ class TransbankController extends ApiResponseController
      */
     public function store(Request $request)
     {
+        // It is used to store the report downloaded from Transbank.
         if ($files = $request->file('file')) {
             $name = $files->getClientOriginalName();
             $files->move('uploads', $name);
