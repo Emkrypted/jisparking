@@ -3,27 +3,25 @@
 
 ## About Jisparking
 
-Jisparking is a parking management company, it dedicates to offer rent parking spots such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Jisparking is a parking management company ubicated en Santiago. Chile.
 
 ## Jisparking ERP
 
 Jisparking ERP is a web software who manage different operations in the company, they are:.
 
-- [DTE Creation as 33, 39, 61].
-- [Automatic accounting, it creates the accounting books automaticly].
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Accounting.
+- DTE issuance. Creation of invoices, tickets, credit and debit notes.
+- Creation of holiday tickets.
+- Remuneration burden by branch.
+- Deposit loading by branch.
+- Manual accounting seats.
+- Automatic accounting entries.
+- Surrender of expenses.
+- Control of invoices received to keep track of whether or not it was paid.
+- Settlement of wages per worker.
+- Induction.
+- Loading and editing patents.
+- Crud from vendors.
+- Crud of customers.
+- Crud of users.
 
